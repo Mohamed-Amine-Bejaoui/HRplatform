@@ -1,9 +1,10 @@
-import mysql from 'mysql2/promise'; // Use promise-based MySQL client
+import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
 
-dotenv.config(); // Load environment variables
+dotenv.config(); 
 
-const connectDB = async () => {
+
+const db = async () => {
   try {
     const connection = await mysql.createConnection({
       host: process.env.DB_HOST,
@@ -21,4 +22,4 @@ const connectDB = async () => {
   }
 };
 
-export default connectDB;
+export default db;
