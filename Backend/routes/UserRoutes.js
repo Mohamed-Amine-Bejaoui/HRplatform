@@ -41,10 +41,6 @@ router.post('/login', async (req, res) => {
 
     const user = rows[0]; 
 
-    if (!user.emp_password) {
-      return res.status(400).json({ error: 'No password found for this user' });
-    }
-
     console.log('User password:', user.emp_password); 
     //const isMatch = await bcrypt.compare(password, user.emp_password); 
     //if (!isMatch) {
