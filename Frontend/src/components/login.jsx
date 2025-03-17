@@ -62,7 +62,6 @@ const Login = () => {
                 required
               />
             </div>
-            <div>kos khaltek</div>
             {error && <div className="error-message">{error}</div>}
             <div className="field btn">
               <div className="btn-layer"></div>

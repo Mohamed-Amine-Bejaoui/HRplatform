@@ -1,0 +1,34 @@
+.sidebar{
+    width:230px;
+    height:100%;
+    border-right: 0.5px rgb(0, 55, 255) solid;
+    padding-top: 20px;
+    /*rgb(228, 228, 228)*/
+}
+.links{
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    
+}
+.sidebar-link
+{
+    color: black;
+    font-weight: 100;
+    text-decoration: none;
+    padding: 10px;
+    padding-left:20px;
+    font-size: small;
+
+}
+.sidebar-link:hover {
+    background-color: #0055ff ;/*#e9ecef*/
+    width: 100%;
+    color: white;
+}
+img{
+    width: 30px;
+    height: 30px;
+    margin-left: 100px;
+    margin-bottom: 20px;
+}
