@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "../Styles/login.css";
 import { useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode"; // Correct import
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -12,7 +13,6 @@ const Login = () => {
     e.preventDefault();
 
     const loginData = { email, password };
-    console.log("Login data:", loginData);
     try {
       const response = await fetch("http://localhost:5000/user/login", {
         method: "POST",
@@ -25,17 +25,26 @@ const Login = () => {
       const data = await response.json();
 
       if (response.ok) {
-      
+        
         localStorage.setItem("authToken", data.token);
-        navigate("/dashboard");  
+        const decodedToken = jwtDecode(data.token);
+        localStorage.setItem("decodedToken", decodedToken);
+        console.log (decodedToken)
+
+        if (decodedToken.role === "admins") {
+          navigate("/admin-dashboard");  
+        } else {
+          navigate("/dashboard");  
+        }
       } else {
-        setError(data.message); 
-        alert(data.error)
+        setError(data.error); 
+        alert(data.error);
       }
     } catch (error) {
       setError("Server error. Please try again later.");
     }
   };
+
   return (
     <div className="wrapper">
       <div className="title-text">

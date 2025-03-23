@@ -2,7 +2,11 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import connectDB from '../db.js';
+import { configDotenv } from 'dotenv';
 const router = express.Router();
+configDotenv()
+const PasswordHash = process.env.PASSWORD_HASH;
+
 router.post('/add',async(req,res)=>{
   try{
     const {empID,email,name,type,joinDate,contractEnd}=req.body;
@@ -29,7 +33,7 @@ router.post('/login', async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required' });
     }
-/*
+
     const db = await connectDB(); 
     const query = 'SELECT * FROM users_aux WHERE emp_mail = ?';
     const [rows] = await db.query(query, [email]); 
@@ -41,20 +45,22 @@ router.post('/login', async (req, res) => {
 
     const user = rows[0]; 
 
-    console.log('User password:', user.emp_password); 
-    //const isMatch = await bcrypt.compare(password, user.emp_password); 
-    //if (!isMatch) {
-    if (password!="ForviaIT")  {
+    const isMatch = await bcrypt.compare(password,PasswordHash); 
+    if (!isMatch) {
     return res.status(400).json({ error: 'Invalid email or password' });
     }
-
+    const queryAdm='SELECT * FROM admins a WHERE a.emp_mail = ?';
+    const [rowsAdm]=await db.query(queryAdm,[email]);
+    const role=rowsAdm.length>0?"admins":"employee";
+    console.log(role)
     const token = jwt.sign(
-      { userId: user.id, email: user.email },
+      { userId: user.id, email: user.email,role:role },
       process.env.JWT_SECRET,
       { expiresIn: '1h' } 
     );
-*/    
-    res.status(200).json({ message: 'Login successful', /*token*/ });
+    
+    
+    res.status(200).json({ message: 'Login successful', token });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Failed to login. Please try again later.' });
