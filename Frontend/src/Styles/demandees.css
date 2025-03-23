@@ -1,0 +1,35 @@
+.dem {
+    background-color: rgb(255, 255, 255);
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    width: 100vw;
+    height: 100vh;
+}
+  .dmcontainer{
+  margin-top: 60px;
+  margin-left: 10px;
+  
+}
+h1{
+  font-weight: 500;
+}
+.buttons{
+    position: absolute;
+    right: 50px;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+
+}
+.btn{
+    background-color: #0000cd;
+    border-radius: 5px;
+    color: white;
+    padding: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
+    font-weight:100;
+    border: 1px solid black;
+    cursor: pointer;
+}

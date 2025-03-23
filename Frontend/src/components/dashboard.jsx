@@ -11,7 +11,9 @@ const Dashboard = () => {
   return (
     <div className={`dash ${loaded ? "active" : ""}`}>
       <Sidebar />
-      <h1>Dashboard</h1>
+      <div className="dcontainer">
+        <h1>Ma Préscence</h1>
+      </div>
     </div>
   );
 };

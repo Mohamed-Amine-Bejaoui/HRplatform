@@ -64,7 +64,6 @@ const Login = () => {
             </div>
             {error && <div className="error-message">{error}</div>}
             <div className="field btn">
-              <div className="btn-layer"></div>
               <input type="submit" value="Login" />
             </div>
           </form>

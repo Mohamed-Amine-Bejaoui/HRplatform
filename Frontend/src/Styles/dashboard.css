@@ -14,4 +14,11 @@
     opacity: 1;
     transform: translateY(0);
   }
+.dcontainer{
+  margin-top: 60px;
+  margin-left: 10px;
   
+}
+h1{
+  font-weight: 500;
+}

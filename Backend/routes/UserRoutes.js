@@ -29,7 +29,7 @@ router.post('/login', async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required' });
     }
-
+/*
     const db = await connectDB(); 
     const query = 'SELECT * FROM users_aux WHERE emp_mail = ?';
     const [rows] = await db.query(query, [email]); 
@@ -53,8 +53,8 @@ router.post('/login', async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: '1h' } 
     );
-    
-    res.status(200).json({ message: 'Login successful', token });
+*/    
+    res.status(200).json({ message: 'Login successful', /*token*/ });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Failed to login. Please try again later.' });

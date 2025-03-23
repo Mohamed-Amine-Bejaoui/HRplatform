@@ -6,27 +6,27 @@ const Sidebar = () => {
     <div className='sidebar'>
          <nav className='links'>
          <img src="/assets/téléchargement.png" alt="Logo" />
-         <NavLink to="/home" className="sidebar-link" activeClassName="active">
-                            Articles
+         <NavLink to="/dashboard" className="sidebar-link" activeClassName="active">
+                            Ma Préscence
                         </NavLink>
                 
-                        <NavLink to="/Categorie" className="sidebar-link" activeClassName="active">
-                            Categorie
+                        <NavLink to="/demandes" className="sidebar-link" activeClassName="active">
+                            Demandes
                         </NavLink>
                 
-                        <NavLink to="/commandes" className="sidebar-link" activeClassName="active">
-                            Commandes
+                        <NavLink to="/teams" className="sidebar-link" activeClassName="active">
+                            Mon equipe
                         </NavLink>
                     
                     
-                        <NavLink to="/fournisseurs" className="sidebar-link" activeClassName="active">
-                            Fournisseur
+                        <NavLink to="/notifs" className="sidebar-link" activeClassName="active">
+                            Notifications
                         </NavLink>
                     
                     
 
-                        <NavLink to="/inventory" className="sidebar-link" activeClassName="active">
-                            Rapports
+                        <NavLink to="/profile" className="sidebar-link" activeClassName="active">
+                            Mon profil
                         </NavLink>
                     
                     

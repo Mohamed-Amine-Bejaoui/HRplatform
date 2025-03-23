@@ -1,0 +1,16 @@
+.ntf {
+    background-color: rgb(255, 255, 255);
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    width: 100vw;
+    height: 100vh;
+}
+  .nfcontainer{
+  margin-top: 60px;
+  margin-left: 10px;
+  
+}
+h1{
+  font-weight: 500;
+}
