@@ -9,24 +9,14 @@ const Sidebar = () => {
          <NavLink to="/dashboard" className="sidebar-link" activeClassName="active">
                             Ma Préscence
                         </NavLink>
-                
-                        <NavLink to="/demandes" className="sidebar-link" activeClassName="active">
-                            Demandes
+                        <NavLink to="/profile" className="sidebar-link" activeClassName="active">
+                            Mon profil
                         </NavLink>
-                
-                        <NavLink to="/teams" className="sidebar-link" activeClassName="active">
-                            Mon equipe
-                        </NavLink>
-                    
-                    
                         <NavLink to="/notifs" className="sidebar-link" activeClassName="active">
                             Notifications
                         </NavLink>
-                    
-                    
-
-                        <NavLink to="/profile" className="sidebar-link" activeClassName="active">
-                            Mon profil
+                        <NavLink to="/salaire" className="sidebar-link" activeClassName="active">
+                            Salaire
                         </NavLink>
                     
                     

@@ -31,14 +31,13 @@ const Login = () => {
         localStorage.setItem("decodedToken", decodedToken);
         console.log (decodedToken)
 
-        if (decodedToken.role === "admins") {
+        if (decodedToken.role === "admin") {
           navigate("/admin-dashboard");  
         } else {
           navigate("/dashboard");  
         }
       } else {
         setError(data.error); 
-        alert(data.error);
       }
     } catch (error) {
       setError("Server error. Please try again later.");
@@ -73,7 +72,7 @@ const Login = () => {
             </div>
             {error && <div className="error-message">{error}</div>}
             <div className="field btn">
-              <input type="submit" value="Login" />
+              <input type="submit" value="Login"  style={{backgroundColor:"#0037ce"}}/>
             </div>
           </form>
         </div>
