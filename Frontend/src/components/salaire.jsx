@@ -1,6 +1,6 @@
 import React from 'react'
 import Sidebar from './sidebar'
-import "../Styles/myteeam.css";
+import "../Styles/salaire.css";
 
 const Salaire = () => {
   return (

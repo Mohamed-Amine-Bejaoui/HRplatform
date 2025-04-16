@@ -1,9 +1,5 @@
-.prcontainer {
-  width: 100%;
-  padding: 20px;
-  padding-top: 0px;
-  box-sizing: border-box; /* Ensures padding doesn't affect width */
-}.table-container {
+
+.table-container {
   max-height: 550px; /* Adjust height as needed */
   overflow-y: auto;
   width: 99%;
@@ -220,4 +216,17 @@ button {
 
 .update-btn:hover {
   background-color: #ffa703;
+}
+.emp {
+  background-color:rgb(255, 255, 255);
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  width: 100vw;
+  height: 100vh;
+}
+.empcontainer{
+margin-top: 60px;
+margin-left: 10px;
+
 }

@@ -125,7 +125,7 @@ const db = await connectDB();
   });router.post('/addemp', async (req, res) => {
     try {
       const { emp_num_aux, emp_mail, emp_type_aux, emp_join_aux, contract_finish, aux_status, isAdmin } = req.body;
-      
+      console.log(aux_status)
       const query = `
         INSERT INTO users_aux (emp_num_aux, emp_mail, emp_type_aux, emp_join_aux, contract_finish, aux_status)
         VALUES (?, ?, ?, ?, ?, ?)

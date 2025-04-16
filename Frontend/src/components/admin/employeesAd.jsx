@@ -13,7 +13,7 @@ const EmployeesAd = () => {
     emp_mail: "",
     emp_type_aux: "",
     emp_join_aux: "",
-    aux_status: 0,
+    aux_status: 1,
     contract_finish: "",
     isAdmin: false,
   });
@@ -69,7 +69,7 @@ const EmployeesAd = () => {
       emp_mail: "",
       emp_type_aux: "",
       emp_join_aux: "",
-      aux_status: "",
+      aux_status: 1,
       contract_finish: "",
       isAdmin: false,
     });
@@ -149,6 +149,7 @@ const EmployeesAd = () => {
       if (!response.ok) {
         throw new Error("mail et id doivenet étre uniques");
       }
+      console.log(formData.aux_status)
 
       
       const data = await response.json();
@@ -164,7 +165,7 @@ const EmployeesAd = () => {
         emp_mail: "",
         emp_type_aux: "",
         emp_join_aux: "",
-        aux_status: "",
+        aux_status: 1,
         contract_finish: "",
         isAdmin: false,
       });
@@ -175,9 +176,9 @@ const EmployeesAd = () => {
   };
 
   return (
-    <div className="prf">
+    <div className="emp">
       <SideAd />
-      <div className="prcontainer">
+      <div className="empcontainer">
         <h1>Employés</h1>
         <div className="search">
         <button className="addbtn" onClick={() => openAddModal()}>Ajouter</button>
