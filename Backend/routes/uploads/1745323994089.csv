@@ -1,0 +1,5 @@
+﻿EmployeeID;Name;Date;Workplace;Check-in (actual);Check-out (actual);Check-in (corrected);Check-out (corrected);Worked Hours;Absence/Anomaly
+8234;Rourou Samar;25/10/2023;Faurecia;08:10;17:40;08:10;17:40;9.50;
+8234;Rourou Samar;26/10/2023;Faurecia;08:08;17:54;08:08;17:54;9.77;
+8234;Rourou Samar;28/10/2023;Faurecia;;;;;;Weekend
+;;;;;;;;;

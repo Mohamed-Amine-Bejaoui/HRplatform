@@ -29,7 +29,6 @@ const Login = () => {
         localStorage.setItem("authToken", data.token);
         const decodedToken = jwtDecode(data.token);
         localStorage.setItem("decodedToken", decodedToken);
-        console.log (decodedToken)
 
         if (decodedToken.role === "admin") {
           navigate("/admin-dashboard");  

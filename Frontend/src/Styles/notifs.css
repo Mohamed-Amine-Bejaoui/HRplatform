@@ -14,3 +14,160 @@
 h1{
   font-weight: 500;
 }
+.ntf {
+  background-color: rgb(255, 255, 255);
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  width: 100vw;
+  height: 100vh;
+
+}
+.nfcontainer{
+width: 100%;
+margin-top: 60px;
+margin-left: 10px;
+
+
+}
+h1{
+font-weight: 500;
+}
+.upload-box {
+top: 50px;
+width: 250px;
+height: 250px;
+border: 2px dashed #ccc;
+border-radius: 25px;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+gap: 10px;
+cursor: pointer;
+position: relative;
+transition: border-color 0.3s ease;
+}
+
+.upload-box:hover {
+border-color: #888;
+}
+
+.upload-icon {
+font-size: 40px;
+color: #555;
+}
+
+.upload-text {
+font-size: 16px;
+font-weight: 500;
+color: #333;
+}
+
+.upload-footer {
+position: absolute;
+bottom: 10px;
+font-size: 14px;
+color: #666;
+}
+
+input[type="file"] {
+display: none;
+}
+
+#top_buttons{
+place-content: center;
+margin-left: auto;
+margin-right: auto;
+display: flex;
+gap: 40px;
+}
+
+#bot_buttons{
+margin-left: auto;
+margin-right: auto;
+text-align: center;
+
+}
+
+
+.month-select select {
+
+width: 100%;
+max-width: 280px;
+margin-bottom: 1vh;
+padding: 10px 14px;
+font-size: 16px;
+color: #333;
+border: 1px solid #ccc;
+border-radius: 6px;
+background-color: #fff;
+outline: none;
+transition: border-color 0.2s ease;
+box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.month-select select:focus {
+border-color: #888;
+}
+#button_upload {
+background-color: rgb(33, 81, 255);
+color: white;
+padding: 10px 20px;
+font-size: 16px;
+border: none;
+border-radius: 6px;
+cursor: pointer;
+transition: background-color 0.2s ease, box-shadow 0.2s ease;
+margin-top: -10px;
+}
+
+#button_upload:hover {
+background-color:rgb(0, 55, 255);
+box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+#button_upload:active {
+background-color: rgb(0, 39, 182);
+}
+#msg_error{
+margin: 10px;
+}
+.upload-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  padding: 20px;
+  padding-top: 0px;
+  border-radius: 10px;
+  background-color: #f8f9fa;
+  border: 0.5px solid black;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+#top_buttons {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.month-select {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+#button_upload {
+  width: 100%;
+  max-width: 280px;
+}
+
+#msg_error {
+  text-align: center;
+  margin-top: 20px;
+  color: #333;
+  font-size: 16px;
+}

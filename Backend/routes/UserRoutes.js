@@ -14,7 +14,6 @@ const db = await connectDB();
         return res.status(400).json({ error: 'Email and password are required' });
       }
   
-      const db = await connectDB();
       const query = 'SELECT * FROM login WHERE emp_mail = ?';
       const [rows] = await db.query(query, [email]);
   
@@ -35,7 +34,7 @@ const db = await connectDB();
       const role = rowsAdm[0].role
   
       const token = jwt.sign(
-        { userId: user.id, email: user.emp_mail, role },
+        { userId: user.id, email: user.emp_mail, role,emp_num_aux:user.emp_num_aux },
         process.env.JWT_SECRET,
         { expiresIn: '1h' }
       );
@@ -60,7 +59,6 @@ const db = await connectDB();
   })
   router.get('/getemp/:num',async(req,res)=>{
     try{
-      const db=await connectDB();
       const query='SELECT * from users_aux where emp_num_aux=?'
       const [rows]=await db.query(query,[req.params.num])
       res.json(rows[0])
@@ -141,11 +139,11 @@ const db = await connectDB();
       const insertedId = result.insertId;  // Get the ID of the last inserted row
   
       const query2 = `
-        INSERT INTO login (emp_mail, password_hash, role) 
-        VALUES (?, ?, ?)
+        INSERT INTO login (emp_mail, password_hash, role,emp_num_aux) 
+        VALUES (?, ?, ?,?)
       `;
       const role = isAdmin === true ? "admin" : "employee";
-      const values2 = [emp_mail, process.env.PASSWORD_HASH, role];
+      const values2 = [emp_mail, process.env.PASSWORD_HASH, role,emp_num_aux];
       const [result2] = await db.query(query2, values2);
   
       res.status(200).json({ message: "Employee added successfully", id: insertedId });

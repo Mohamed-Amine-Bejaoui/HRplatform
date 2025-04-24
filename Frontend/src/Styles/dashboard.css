@@ -1,24 +1,94 @@
+
 .dash {
-    background-color: rgb(255, 255, 255);
-    display: flex;
-    flex-direction: row;
-    gap: 10px;
-    width: 100vw;
-    height: 100vh;
-    transform: translateY(50px);
-    opacity: 0;
-    transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
+  background-color: rgb(255, 255, 255);
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  width: 100vw;
+  height: 100vh;
+  transform: translateY(50px);
+  opacity: 0;
+  transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
 }
-  
-  .dash.active {
-    opacity: 1;
-    transform: translateY(0);
-  }
-.dcontainer{
-  margin-top: 60px;
-  margin-left: 10px;
-  
+
+.dash.active {
+  opacity: 1;
+  transform: translateY(0);
 }
-h1{
+
+/* Center the calendar container */
+.dcontainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1; /* take up remaining space */
+  margin-top: 0;
+  margin-left: 0;
+  padding: 20px;
+  text-align: center;
+}
+
+h1 {
   font-weight: 500;
+}
+
+.calendar-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-weight: bold;
+  margin-top: 10px;
+  width: 100%;
+  max-width: 800px;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+  margin-top: 10px;
+  width: 100%;
+  max-width: 800px;
+}
+
+.calendar-day {
+  background-color: #ffffff;
+  border-radius: 10px;
+  padding: 10px;
+  min-height: 100px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: background-color 0.2s;
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.calendar-day.present {
+  border: 3px solid #026602;
+}
+
+.calendar-day.absent {
+  border: 3px solid #d70404;
+}
+
+.calendar-day.empty {
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.date {
+  font-weight: bold;
+  font-size: 16px;
+  margin-bottom: 5px;
+}
+
+.details {
+  font-size: 13px;
+}
+
+.details.empty {
+  color: #888;
+  font-style: italic;
 }

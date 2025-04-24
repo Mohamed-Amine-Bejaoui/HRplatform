@@ -1,11 +1,17 @@
 import React, { useEffect, useState } from "react";
 import "../Styles/dashboard.css";
 import Sidebar from "./sidebar";
+import { jwtDecode } from "jwt-decode"; // Correct import
+
 const Dashboard = () => {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    setTimeout(() => setLoaded(true), 100); // Slight delay for smooth transition
+  setTimeout(() => setLoaded(true), 100);
+  const storedUser = localStorage.getItem("authToken");
+  const decodedToken = jwtDecode(storedUser);
+  console.log(decodedToken);
+  
   }, []);
 
   return (
