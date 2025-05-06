@@ -188,7 +188,7 @@ const EmployeesAd = () => {
           <button type="reset">Annuler</button>
         </form>
         </div>
-        <table>
+        <table className="tablex">
           <thead>
             <tr>
               <th>Num</th>
@@ -202,7 +202,7 @@ const EmployeesAd = () => {
           </thead>
         </table>
         <div style={{ width: "100%" }} className="table-container">
-          <table>
+          <table className="t2">
             <tbody>
               {employees.map((employee, index) => (
                 <tr key={index}>

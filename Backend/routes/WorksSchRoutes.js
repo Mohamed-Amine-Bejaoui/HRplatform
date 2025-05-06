@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url';
 import connectDB from '../db.js';
 
 const router = express.Router();
+const db = await connectDB();
 
 // Setup directory for uploads
 const __filename = fileURLToPath(import.meta.url);
@@ -45,9 +46,7 @@ router.post('/upload', upload.single('file'), async (req, res) => {
     return res.status(400).json({ message: 'Invalid or missing month selection' });
   }
 
-  let db;
   try {
-    db = await connectDB();
     const results = [];
     let rowCount = 0;
 

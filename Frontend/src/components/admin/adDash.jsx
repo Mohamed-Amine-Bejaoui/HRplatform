@@ -6,22 +6,29 @@ import { jwtDecode } from "jwt-decode";
 const AdDash = () => {
   const [loaded, setLoaded] = useState(false);
   const [logs, setLogs] = useState([]);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [rechID,setRechID]=useState("")
+  const [logID,setLogID]=useState("")
+
   const storedUser = localStorage.getItem("authToken");
   const decodedToken = jwtDecode(storedUser);
 
   useEffect(() => {
     setTimeout(() => setLoaded(true), 100);
-    fetchLogs();
-  }, []);
+    fetchLogs(decodedToken.emp_num_aux);
+  }, [currentMonth]);
 
-  const fetchLogs = async () => {
+  const fetchLogs = async (aux) => {
     try {
-      const response = await fetch(`http://localhost:5000/logsplan/prescence/${decodedToken.emp_num_aux}`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch employee presence");
-      }
+      const month = (currentMonth.getMonth() + 1).toString().padStart(2, '0');
+      const year = currentMonth.getFullYear();
+
+      const response = await fetch(`http://localhost:5000/logsplan/presence/${aux}?month=${month}&year=${year}`);
+      if (!response.ok) throw new Error("Failed to fetch employee presence");
+
       const data = await response.json();
       setLogs(data);
+      setLogID(aux)
     } catch (error) {
       console.error("Error fetching presence data:", error);
     }
@@ -33,22 +40,28 @@ const AdDash = () => {
     logMap[dateStr] = log;
   });
 
-  const allDates = logs.map(log => new Date(log.date));
-  const minDate = allDates.length ? new Date(Math.min(...allDates)) : new Date();
-  const maxDate = allDates.length ? new Date(Math.max(...allDates)) : new Date();
-  minDate.setHours(0, 0, 0, 0);
-  maxDate.setHours(0, 0, 0, 0);
+  const getPeriodLabel = () => {
+    return currentMonth.toLocaleString("default", { month: "long", year: "numeric" });
+  };
+
+  const changeMonth = (offset) => {
+    const newMonth = new Date(currentMonth);
+    newMonth.setMonth(newMonth.getMonth() + offset);
+    setCurrentMonth(newMonth);
+  };
 
   const generateCalendarDays = () => {
-    const days = [];
-    const current = new Date(minDate);
+    const startOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+    const endOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
 
-    const startDay = (current.getDay() + 6) % 7; 
+    const days = [];
+    const current = new Date(startOfMonth);
+    const startDay = (current.getDay() + 6) % 7;
     for (let i = 0; i < startDay; i++) {
       days.push(<div key={`empty-start-${i}`} className="calendar-day empty"></div>);
     }
 
-    while (current <= maxDate) {
+    while (current <= endOfMonth) {
       const dateStr = current.toISOString().split("T")[0];
       const log = logMap[dateStr];
       const workedHours = log?.worked_hours ?? 0;
@@ -67,7 +80,6 @@ const AdDash = () => {
           )}
         </div>
       );
-
       current.setDate(current.getDate() + 1);
     }
 
@@ -79,13 +91,39 @@ const AdDash = () => {
     }
 
     return days;
-  };
+  }
+  const handleInputChange2=(e)=>{
+    setRechID(e.target.value)
+  }
+  const handlerecherche=async (e)=>{
+    e.preventDefault();
+    fetchLogs(rechID);}
 
   return (
     <div className={`dash ${loaded ? "active" : ""}`}>
       <SideAd />
       <div className="dcontainer">
-        <h1 style={{textAlign:"left"}}>Presence Calendar</h1>
+        <div className="header-controls">
+        <h1 className="title-left">ID : {logID}</h1>
+        <form onSubmit={handlerecherche} onReset={fetchLogs}className="searchn">
+            <input
+              type="text"
+              placeholder="Id employé"
+              onChange={handleInputChange2}
+              value={rechID}
+              className="input"
+            />
+            <button type="submit" className="rechbut">Rechercher</button>
+            <button type="reset"className="resbut">Annuler</button>
+          </form>
+
+        <div className="period-nav">
+            <button className="nav-btn" onClick={() => changeMonth(-1)}>&lt;</button>
+            <span className="period">{getPeriodLabel()}</span>
+            <button className="nav-btn" onClick={() => changeMonth(1)}>&gt;</button>
+          </div>
+        </div>
+        
         <div className="calendar-header">
           <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>
         </div>

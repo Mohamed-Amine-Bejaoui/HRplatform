@@ -6,8 +6,8 @@
   border: 0px solid #ddd; /* Optional: adds a border for better UI */
 }
 
-table {
-  width: 99%; /* Ensure the table takes full width */
+.tablex {
+  width: 100%; /* Ensure the table takes full width */
   border-collapse: collapse;
   margin-top: 20px;
   background: white;
@@ -15,15 +15,17 @@ table {
   overflow: hidden;
   table-layout: fixed; /* Ensures fixed column widths */
 }
-
-th, td {
+.t2{
+width: 100%;
+}
+.tablex th, td {
   border: 0px solid #ddd;
   padding: 12px;
   text-align: left;
   word-wrap: break-word; /* Ensures text doesn't overflow in narrow columns */
 }
 
-th {
+.tablex th {
   background-color: rgb(0, 55, 255);
   color: white;
   font-weight: bold;
@@ -32,36 +34,36 @@ th {
   z-index: 2; /* Ensures headers stay on top */
 }
 
-tr:hover {
+.tablex tr:hover {
   background-color: #ddd;
 }
 
 /* Ensure each column has a fixed width */
-th:nth-child(1), td:nth-child(1) {
+.tablex th:nth-child(1),.t2 td:nth-child(1) {
   width: 7%;
 }
 
-th:nth-child(2), td:nth-child(2) {
+.tablex th:nth-child(2),.t2 td:nth-child(2) {
   width: 7%;
 }
 
-th:nth-child(3), td:nth-child(3) {
+.tablex th:nth-child(3),.t2 td:nth-child(3) {
   width: 29%;
 }
 
-th:nth-child(4), td:nth-child(4) {
+.tablex th:nth-child(4),.t2 td:nth-child(4) {
   width: 10%;
 }
 
-th:nth-child(5), td:nth-child(5) {
+.tablex th:nth-child(5),.t2 td:nth-child(5) {
   width: 20%;
 }
 
-th:nth-child(6), td:nth-child(6) {
+.tablex th:nth-child(6),.t2 td:nth-child(6) {
   width: 10%;
 }
 
-th:nth-child(7), td:nth-child(7) {
+.tablex th:nth-child(7),.t2 td:nth-child(7) {
   width: 18%;
 }
 .btn-container {
