@@ -1,16 +1,84 @@
 .prf {
-    background-color: rgb(255, 255, 255);
-    display: flex;
-    flex-direction: row;
-    gap: 10px;
-    width: 100vw;
-    height: 100vh;
+  background-color: #f7f9fc;
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  width: 100vw;
+  height: 100vh;
 }
-  .prcontainer{
-  margin-top: 60px;
-  margin-left: 10px;
-  
+
+.prcontainer {
+  flex-grow: 1;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
-h1{
+
+prcontainer > h1 {
+  font-weight: 600;
+  font-size: 28px;
+  margin-bottom: 30px;
+  color: #333;
+}
+
+.profile-card {
+  background-color: #fff;
+  width: 100%;
+  max-width: 600px;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.profile-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.profile-row:last-child {
+  border-bottom: none;
+}
+
+.label {
   font-weight: 500;
+  color: #555;
+}
+
+.active {
+  font-weight: bold;
+}
+
+.inactive {
+  color: red;
+  font-weight: bold;
+}
+.profile-card {
+  background: #f9f9f9;
+  padding: 25px;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+}
+
+.profile-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.label {
+  font-weight: bold;
+  color: #444;
+}
+
+.active {
+  font-weight: 600;
+}
+
+.inactive {
+  color: red;
+  font-weight: 600;
 }

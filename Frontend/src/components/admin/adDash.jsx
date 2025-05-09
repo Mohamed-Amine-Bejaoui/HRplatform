@@ -7,8 +7,9 @@ const AdDash = () => {
   const [loaded, setLoaded] = useState(false);
   const [logs, setLogs] = useState([]);
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [rechID,setRechID]=useState("")
-  const [logID,setLogID]=useState("")
+  const [rechID, setRechID] = useState("");
+  const [logID, setLogID] = useState("");
+  const [empName, setEmpName] = useState("");
 
   const storedUser = localStorage.getItem("authToken");
   const decodedToken = jwtDecode(storedUser);
@@ -28,7 +29,12 @@ const AdDash = () => {
 
       const data = await response.json();
       setLogs(data);
-      setLogID(aux)
+      setLogID(aux);
+      if (data.length > 0) {
+        setEmpName(data[0].name);
+      } else {
+        setEmpName("");
+      }
     } catch (error) {
       console.error("Error fetching presence data:", error);
     }
@@ -91,21 +97,24 @@ const AdDash = () => {
     }
 
     return days;
-  }
-  const handleInputChange2=(e)=>{
-    setRechID(e.target.value)
-  }
-  const handlerecherche=async (e)=>{
+  };
+
+  const handleInputChange2 = (e) => {
+    setRechID(e.target.value);
+  };
+
+  const handlerecherche = async (e) => {
     e.preventDefault();
-    fetchLogs(rechID);}
+    fetchLogs(rechID);
+  };
 
   return (
     <div className={`dash ${loaded ? "active" : ""}`}>
       <SideAd />
       <div className="dcontainer">
         <div className="header-controls">
-        <h1 className="title-left">ID : {logID}</h1>
-        <form onSubmit={handlerecherche} onReset={fetchLogs}className="searchn">
+          <h1 className="title-left">   {empName ? `Name : ${empName}` : `ID : ${logID}`}</h1>
+          <form onSubmit={handlerecherche} onReset={() => fetchLogs(decodedToken.emp_num_aux)} className="searchn">
             <input
               type="text"
               placeholder="Id employé"
@@ -114,16 +123,15 @@ const AdDash = () => {
               className="input"
             />
             <button type="submit" className="rechbut">Rechercher</button>
-            <button type="reset"className="resbut">Annuler</button>
+            <button type="reset" className="resbut">Annuler</button>
           </form>
-
-        <div className="period-nav">
+          <div className="period-nav">
             <button className="nav-btn" onClick={() => changeMonth(-1)}>&lt;</button>
             <span className="period">{getPeriodLabel()}</span>
             <button className="nav-btn" onClick={() => changeMonth(1)}>&gt;</button>
           </div>
         </div>
-        
+
         <div className="calendar-header">
           <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>
         </div>
