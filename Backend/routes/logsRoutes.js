@@ -11,18 +11,37 @@ const db = await connectDB();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const uploadsDir = path.resolve(__dirname, 'uploads');
+const uploadDir = path.resolve(__dirname, '../uploads/logs');
 
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
+// Ensure directory exists
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
 }
 
+// Configure multer storage
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadsDir),
-  filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname)),
+  destination: (req, file, cb) => cb(null, uploadDir),
+  filename: (req, file, cb) => cb(null, file.originalname)
 });
 
 const upload = multer({ storage });
+
+// POST /logs/upload - Save attendance file to uploads/logs/
+router.post('/upload', upload.array('files'), (req, res) => {
+  if (!req.files || req.files.length === 0) {
+    return res.status(400).json({ message: 'No files uploaded' });
+  }
+
+  const uploadedFiles = req.files.map(file => ({
+    filename: file.originalname,
+    path: file.path
+  }));
+
+  return res.status(200).json({
+    message: 'Log files uploaded and saved successfully',
+    files: uploadedFiles
+  });
+});
 router.get('/presence', async (req, res) => {
   try {
     const { month, year, name } = req.query;

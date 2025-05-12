@@ -4,24 +4,49 @@ import axios from 'axios';
 import "../../Styles/notifs.css";
 
 const InputsAd = () => {
-  const [workFile, setWorkFile] = useState(null);
-  const [logsFile, setLogsFile] = useState(null);
-  const [workMonth, setWorkMonth] = useState("");
-  const [logsMonth, setLogsMonth] = useState("");
+  const [workFiles, setWorkFiles] = useState([]);
+  const [logsFiles, setLogsFiles] = useState([]);
   const [message, setMessage] = useState("");
 
+  // New state for month-year filter and cron job
+  const [monthYear, setMonthYear] = useState(""); // Format: YYYY-MM
+  const [cronDate, setCronDate] = useState("");
+  const [cronTime, setCronTime] = useState("");
+
+  const handleDrop = (e, type) => {
+    e.preventDefault();
+    const files = Array.from(e.dataTransfer.files);
+    if (type === "work") {
+      setWorkFiles(files);
+    } else {
+      setLogsFiles(files);
+    }
+  };
+
+  const handleFileChange = (e, type) => {
+    const files = Array.from(e.target.files);
+    if (type === "work") {
+      setWorkFiles(files);
+    } else {
+      setLogsFiles(files);
+    }
+  };
+
   const handleUpload = async (type) => {
-    const file = type === "work" ? workFile : logsFile;
-    const month = type === "work" ? workMonth : logsMonth;
+    const files = type === "work" ? workFiles : logsFiles;
     const endpoint = type === "work"
       ? "http://localhost:5000/workplan/upload"
       : "http://localhost:5000/logsplan/upload";
 
-    
+    if (!files.length) {
+      setMessage(`No ${type} files selected.`);
+      return;
+    }
 
     const formData = new FormData();
-    formData.append("file", file);
-    formData.append("month", month);
+    files.forEach(file => {
+      formData.append("files", file);
+    });
 
     try {
       const res = await axios.post(endpoint, formData, {
@@ -33,82 +58,115 @@ const InputsAd = () => {
     }
   };
 
-  const renderMonthOptions = () =>
-    [...Array(12)].map((_, index) => {
-      const value = index + 1;
-      const name = new Date(0, index).toLocaleString("default", { month: "long" });
-      return <option key={value} value={value}>{name}</option>;
-    });
+  const handleCronSubmit = () => {
+    if (!cronDate || !cronTime) {
+      setMessage("Please select both date and time for the cron job.");
+      return;
+    }
+
+    // You can send this to the backend via axios if needed
+    const cronPayload = {
+      date: cronDate,
+      time: cronTime,
+      targetMonth: monthYear,
+    };
+
+    console.log("Cron Scheduled with:", cronPayload);
+    setMessage(`Cron job set for ${cronDate} at ${cronTime} targeting ${monthYear}`);
+  };
+
+  const renderFileNames = (files) =>
+    files.length ? files.map(f => <div key={f.name}>{f.name}</div>) : "Drop or select files";
 
   return (
     <div className="ntf">
       <SideAd />
       <div className="nfcontainer">
-        <h2>Upload Attendance & Work Schedule CSV</h2>
-<br />
-        <div id="top_buttons">
-          {/* Work File Section */}
-          <div className="upload-section">
+        <h2>Upload Attendance & Work Schedule Files</h2>
+
+        {/* Month-Year and Cron Setup Form */}
+        {/* Month-Year and Cron Activation Section */}
+<div id="top_buttons">
+          {/* Work Files Upload Section */}
+          <div
+            className="upload-section"
+            onDrop={(e) => handleDrop(e, "work")}
+            onDragOver={(e) => e.preventDefault()}
+          >
             <label htmlFor="work-upload">
               <div className="upload-box">
                 <i className="bx bxs-cloud-upload upload-icon"></i>
                 <div className="upload-text">
-                  {workFile ? workFile.name : "Choose Work File"}
+                  {renderFileNames(workFiles)}
                 </div>
-                <div className="upload-footer">Work Excel</div>
+                <div className="upload-footer">Work Files</div>
               </div>
             </label>
             <input
               type="file"
               id="work-upload"
-              onChange={(e) => setWorkFile(e.target.files[0])}
+              multiple
+              onChange={(e) => handleFileChange(e, "work")}
               style={{ display: "none" }}
             />
-            <br /><br />
-           <div className="month-select">
-              <select
-                value={workMonth}
-                onChange={(e) => setWorkMonth(e.target.value)}
-              >
-                <option value="">Select Month for Work</option>
-                {renderMonthOptions()}
-              </select>
-            </div>
+            <h4>work schedule</h4>
             <button id="button_upload" onClick={() => handleUpload("work")}>
-              Upload Work Schedule
+              Upload Work Files
             </button>
           </div>
 
-          {/* Logs File Section */}
-          <div className="upload-section">
+          {/* Logs Files Upload Section */}
+          <div
+            className="upload-section"
+            onDrop={(e) => handleDrop(e, "logs")}
+            onDragOver={(e) => e.preventDefault()}
+          >
             <label htmlFor="logs-upload">
               <div className="upload-box">
                 <i className="bx bxs-cloud-upload upload-icon"></i>
                 <div className="upload-text">
-                  {logsFile ? logsFile.name : "Choose Logs File"}
+                  {renderFileNames(logsFiles)}
                 </div>
-                <div className="upload-footer">Logs Excel</div>
+                <div className="upload-footer">Logs Files</div>
               </div>
             </label>
             <input
               type="file"
               id="logs-upload"
-              onChange={(e) => setLogsFile(e.target.files[0])}
+              multiple
+              onChange={(e) => handleFileChange(e, "logs")}
               style={{ display: "none" }}
             />
-           <br /><br />
-
-            <div className="month-select">
-              
-            </div>
+            <h4>Logs</h4>
             <button id="button_upload" onClick={() => handleUpload("logs")}>
-              Upload Attendance Logs
+              Upload Logs Files
             </button>
           </div>
         </div>
-
+<div className="top-form">
+  <h3>Settings</h3>
+  <div className="form-row">
+    <div className="form-group">
+      <label htmlFor="month-year">Target Month</label>
+      <input type="month" id="month-year" className="form-control" />
+    </div>
+    <div className="form-group">
+      <label htmlFor="cron-date">Cron Date</label>
+      <input type="date" id="cron-date" className="form-control" />
+    </div>
+    <div className="form-group">
+      <label htmlFor="cron-time">Cron Hour</label>
+      <input type="time" id="cron-time" className="form-control" />
+    </div>
+    <button className="cron-btn">Validate</button>
+  </div>
+</div>
+  
+        
         <div id="msg_error">{message}</div>
+
       </div>
+
     </div>
   );
 };
