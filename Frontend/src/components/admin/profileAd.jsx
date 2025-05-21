@@ -39,14 +39,14 @@ const ProfileAd = () => {
         <div className="profile-row"><span className="label">Email:</span><span>{profileData.emp_mail}</span></div>
           <div className="profile-row"><span className="label">Name:</span><span>{profileData.name}</span></div>
           <div className="profile-row"><span className="label">Type:</span><span>{profileData.emp_type_aux}</span></div>
-          <div className="profile-row"><span className="label">Join Date:</span>
+          <div className="profile-row"><span className="label">Date of Hire:</span>
           <span>{new Date(profileData.emp_join_aux).toLocaleDateString('en-US', {
           year: 'numeric',
           month: 'long',
           day: 'numeric',
         })}</span>
         </div>
-          <div className="profile-row"><span className="label">Contract Ends:</span>
+          <div className="profile-row"><span className="label">Contract End Date:</span>
           <span>{profileData.contract_finish ?
           new Date(profileData.contract_finish).toLocaleDateString('en-US', {
         year: 'numeric',

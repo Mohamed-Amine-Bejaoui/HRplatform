@@ -179,13 +179,13 @@ const EmployeesAd = () => {
     <div className="emp">
       <SideAd />
       <div className="empcontainer">
-        <h1>Employés</h1>
+        <h1>Employees</h1>
         <div className="search">
-        <button className="addbtn" onClick={() => openAddModal()}>Ajouter</button>
+        <button className="addbtn" onClick={() => openAddModal()}>Add</button>
         <form onSubmit={handlerecherche} onReset={fetchEmployees} >
-          <input type="text" placeholder="ID employé" onChange={handleInputChange2} value={rechID} className="input"/>
-          <button type="submit">Rechercher</button>
-          <button type="reset">Annuler</button>
+          <input type="text" placeholder="ID employee" onChange={handleInputChange2} value={rechID} className="input"/>
+          <button type="submit">Search</button>
+          <button type="reset">Reset</button>
         </form>
         </div>
         <table className="tablex">
@@ -195,7 +195,7 @@ const EmployeesAd = () => {
               <th>ID</th>
               <th>Mail</th>
               <th>Type</th>
-              <th>Date d'adhésion</th>
+              <th>Date of Hire</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
@@ -214,11 +214,20 @@ const EmployeesAd = () => {
                   <td>{employee.aux_status === 1 ? "Active" : "Inactive"}</td>
                   <td className="btn-container">
                     <button className="update-btn" onClick={() => handleUpdate(employee)}>
-                      Modifier
+                      Update
                     </button>
-                    <button className="delete-btn" onClick={() => handleDelete(employee.emp_num_aux)}>
-                      Supprimer
+                    <button
+                      className="delete-btn"
+                      onClick={() => {
+                        const confirmDelete = window.confirm(`Are you sure you want to delete employee ${employee.emp_num_aux}?`);
+                        if (confirmDelete) {
+                          handleDelete(employee.emp_num_aux);
+                        }
+                      }}
+                    >
+                      Delete
                     </button>
+
                   </td>
                 </tr>
               ))}
@@ -231,7 +240,7 @@ const EmployeesAd = () => {
           <div className="modal-overlay" onClick={() => setShowModal(false)}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
               <button className="close-btn" onClick={() => setShowModal(false)}>X</button>
-              <h2>Modifier l'employé</h2>
+              <h2>Update employee</h2>
               <form onSubmit={handleUpdateSubmit}>
                 <label>ID:</label>
                 <input type="text" name="emp_num_aux" value={formData.emp_num_aux} required readOnly />
@@ -242,7 +251,7 @@ const EmployeesAd = () => {
                 <label>Type:</label>
                 <input type="text" name="emp_type_aux" value={formData.emp_type_aux} onChange={handleInputChange} required />
 
-                <label>Date d'adhésion:</label>
+                <label>Date of Hire :</label>
                 <input type="date" name="emp_join_aux" value={formData.emp_join_aux} onChange={handleInputChange} required />
 
                 <label>Status:</label>
@@ -252,7 +261,7 @@ const EmployeesAd = () => {
                 </select>
 
                 <div className="modal-buttons">
-                  <button type="submit" className="update-btn">Enregistrer</button>
+                  <button type="submit" className="update-btn">Save</button>
                   <button type="button" className="delete-btn" onClick={() => setShowModal(false)}>Annuler</button>
                 </div>
               </form>
@@ -265,7 +274,7 @@ const EmployeesAd = () => {
           <div className="modal-overlay" onClick={() => setShowModal2(false)}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
               <button className="close-btn" onClick={() => setShowModal2(false)}>X</button>
-              <h2>Ajouter un employé</h2>
+              <h2>Add employee</h2>
               <form onSubmit={handleAddSubmit}>
                 <label>ID:</label>
                 <input type="text" name="emp_num_aux" value={formData.emp_num_aux} onChange={handleInputChange} required />
@@ -276,10 +285,10 @@ const EmployeesAd = () => {
                 <label>Type:</label>
                 <input type="text" name="emp_type_aux" value={formData.emp_type_aux} onChange={handleInputChange} required />
 
-                <label>Date d'adhésion:</label>
+                <label>Date of Hire:</label>
                 <input type="date" name="emp_join_aux" value={formData.emp_join_aux} onChange={handleInputChange} required />
 
-                <label>Date de fin de contrat:</label>
+                <label>Contract End Date</label>
                 <input type="date" name="contract_finish" value={formData.contract_finish} onChange={handleInputChange} />
 
                 <label>Status:</label>
@@ -292,7 +301,7 @@ const EmployeesAd = () => {
                 <input type="checkbox" name="isAdmin" id="check" checked={formData.isAdmin} onChange={handleInputChange} />
 
                 <div className="modal-buttons">
-                  <button type="submit" className="update-btn">Enregistrer</button>
+                  <button type="submit" className="update-btn">Save</button>
                   <button type="button" className="delete-btn" onClick={() => setShowModal2(false)}>Annuler</button>
                 </div>
               </form>

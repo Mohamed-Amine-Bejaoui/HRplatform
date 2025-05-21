@@ -140,7 +140,7 @@ input[type="file"] {
   border: 1px solid #000000;
   padding: 20px 30px;
   border-radius: 10px;
-  margin: 20px auto;
+  margin: -15px auto;
   max-width: 900px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }

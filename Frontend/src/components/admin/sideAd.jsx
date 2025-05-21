@@ -7,23 +7,23 @@ const SideAd = () => {
          <nav className='links'>
          <img src="/assets/téléchargement.png" alt="Logo" />
                         <NavLink to="/admin-dashboard" className="sidebar-link" activeClassName="active">
-                            Dashboard
+                            Calendar
                         </NavLink>
                         <NavLink to="/employeesAd" className="sidebar-link" activeClassName="active">
-                            Employés
+                            Employees
                         </NavLink>
 
                         <NavLink to="/profileAd" className="sidebar-link" activeClassName="active">
-                            Mon profil
+                            My profile
                         </NavLink>
                         <NavLink to="/notifsAd" className="sidebar-link" activeClassName="active">
                             Notifications
                         </NavLink>
                         <NavLink to="/salaireAd" className="sidebar-link" activeClassName="active">
-                            Salaire
+                            Dashboard
                         </NavLink>
                         <NavLink to="/inputsAd" className="sidebar-link" activeClassName="active">
-                        entrées
+                        Upload Logs
 
                         </NavLink>
                     

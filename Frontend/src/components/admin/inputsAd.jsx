@@ -7,72 +7,81 @@ const InputsAd = () => {
   const [workFiles, setWorkFiles] = useState([]);
   const [logsFiles, setLogsFiles] = useState([]);
   const [message, setMessage] = useState("");
-
-  // New state for month-year filter and cron job
-  const [monthYear, setMonthYear] = useState(""); // Format: YYYY-MM
+  const [monthYear, setMonthYear] = useState("");
   const [cronDate, setCronDate] = useState("");
   const [cronTime, setCronTime] = useState("");
+  const [isScheduling, setIsScheduling] = useState(false);
 
   const handleDrop = (e, type) => {
     e.preventDefault();
     const files = Array.from(e.dataTransfer.files);
-    if (type === "work") {
-      setWorkFiles(files);
-    } else {
-      setLogsFiles(files);
-    }
+    type === "work" ? setWorkFiles(files) : setLogsFiles(files);
   };
 
   const handleFileChange = (e, type) => {
     const files = Array.from(e.target.files);
-    if (type === "work") {
-      setWorkFiles(files);
-    } else {
-      setLogsFiles(files);
-    }
+    type === "work" ? setWorkFiles(files) : setLogsFiles(files);
   };
 
   const handleUpload = async (type) => {
     const files = type === "work" ? workFiles : logsFiles;
-    const endpoint = type === "work"
-      ? "http://localhost:5000/workplan/upload"
-      : "http://localhost:5000/logsplan/upload";
-
     if (!files.length) {
       setMessage(`No ${type} files selected.`);
       return;
     }
 
+    const endpoint = `http://localhost:5000/${type}plan/upload`;
     const formData = new FormData();
-    files.forEach(file => {
-      formData.append("files", file);
-    });
+    files.forEach(file => formData.append("files", file));
 
     try {
-      const res = await axios.post(endpoint, formData, {
+      await axios.post(endpoint, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-      setMessage(res.data.message);
+      setMessage(`✅ ${type === "work" ? "Work" : "Logs"} files uploaded!`);
+      type === "work" ? setWorkFiles([]) : setLogsFiles([]);
     } catch (err) {
-      setMessage(`Upload failed for ${type}`);
+      setMessage(`❌ ${type} upload failed: ${err.response?.data?.message || err.message}`);
     }
   };
 
-  const handleCronSubmit = () => {
-    if (!cronDate || !cronTime) {
-      setMessage("Please select both date and time for the cron job.");
+  const handleCronSubmit = async () => {
+    if (!cronDate || !cronTime || !monthYear) {
+      setMessage("⚠️ Please select date, time, and target month.");
       return;
     }
 
-    // You can send this to the backend via axios if needed
-    const cronPayload = {
-      date: cronDate,
-      time: cronTime,
-      targetMonth: monthYear,
-    };
+    setIsScheduling(true);
+    setMessage("⏳ Scheduling jobs...");
 
-    console.log("Cron Scheduled with:", cronPayload);
-    setMessage(`Cron job set for ${cronDate} at ${cronTime} targeting ${monthYear}`);
+    try {
+      const [workRes, logsRes] = await Promise.all([
+        axios.post("http://localhost:5000/workplan/process-cron", {
+          date: cronDate,
+          time: cronTime,
+          targetMonth: monthYear
+        }),
+        axios.post("http://localhost:5000/logsplan/process-cron", {
+          date: cronDate,
+          time: cronTime,
+          targetMonth: monthYear
+        })
+      ]);
+
+      setMessage(`
+        ✅ Cron jobs scheduled successfully!
+        Work: ${workRes.data.note} (${workRes.data.cronExpression})
+        Logs: ${logsRes.data.note} (${logsRes.data.cronExpression})
+      `);
+      
+      setCronDate("");
+      setCronTime("");
+      setMonthYear("");
+    } catch (err) {
+      setMessage(`❌ Failed to schedule: ${err.response?.data?.message || err.message}`);
+    } finally {
+      setIsScheduling(false);
+    }
   };
 
   const renderFileNames = (files) =>
@@ -84,10 +93,8 @@ const InputsAd = () => {
       <div className="nfcontainer">
         <h2>Upload Attendance & Work Schedule Files</h2>
 
-        {/* Month-Year and Cron Setup Form */}
-        {/* Month-Year and Cron Activation Section */}
-<div id="top_buttons">
-          {/* Work Files Upload Section */}
+        <div id="top_buttons">
+          {/* Work Files Section */}
           <div
             className="upload-section"
             onDrop={(e) => handleDrop(e, "work")}
@@ -109,13 +116,13 @@ const InputsAd = () => {
               onChange={(e) => handleFileChange(e, "work")}
               style={{ display: "none" }}
             />
-            <h4>work schedule</h4>
+            <h4>Work Schedule Logs</h4>
             <button id="button_upload" onClick={() => handleUpload("work")}>
               Upload Work Files
             </button>
           </div>
 
-          {/* Logs Files Upload Section */}
+          {/* Logs Files Section */}
           <div
             className="upload-section"
             onDrop={(e) => handleDrop(e, "logs")}
@@ -137,36 +144,62 @@ const InputsAd = () => {
               onChange={(e) => handleFileChange(e, "logs")}
               style={{ display: "none" }}
             />
-            <h4>Logs</h4>
+            <h4>Machine Logs</h4>
             <button id="button_upload" onClick={() => handleUpload("logs")}>
               Upload Logs Files
             </button>
           </div>
         </div>
-<div className="top-form">
-  <h3>Settings</h3>
-  <div className="form-row">
-    <div className="form-group">
-      <label htmlFor="month-year">Target Month</label>
-      <input type="month" id="month-year" className="form-control" />
-    </div>
-    <div className="form-group">
-      <label htmlFor="cron-date">Cron Date</label>
-      <input type="date" id="cron-date" className="form-control" />
-    </div>
-    <div className="form-group">
-      <label htmlFor="cron-time">Cron Hour</label>
-      <input type="time" id="cron-time" className="form-control" />
-    </div>
-    <button className="cron-btn">Validate</button>
-  </div>
-</div>
-  
-        
+
+        {/* Cron Settings Section */}
+        <div className="top-form">
+          <h3>Settings</h3>
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="month-year">Target Month</label>
+              <input
+                type="month"
+                id="month-year"
+                className="form-control"
+                value={monthYear}
+                onChange={(e) => setMonthYear(e.target.value)}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="cron-date">Cron Date</label>
+              <input
+                type="date"
+                id="cron-date"
+                className="form-control"
+                value={cronDate}
+                onChange={(e) => setCronDate(e.target.value)}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="cron-time">Cron Time</label>
+              <input
+                type="time"
+                id="cron-time"
+                className="form-control"
+                value={cronTime}
+                onChange={(e) => setCronTime(e.target.value)}
+                required
+              />
+            </div>
+            <button 
+              className="cron-btn" 
+              onClick={handleCronSubmit}
+              disabled={isScheduling}
+            >
+              {isScheduling ? 'Scheduling...' : 'Validate Cron for Both'}
+            </button>
+          </div>
+        </div>
+
         <div id="msg_error">{message}</div>
-
       </div>
-
     </div>
   );
 };

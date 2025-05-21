@@ -114,16 +114,16 @@ const AdDash = () => {
       <div className="dcontainer">
         <div className="header-controls">
           <h1 className="title-left">   {empName ? `Name : ${empName}` : `ID : ${logID}`}</h1>
-          <form onSubmit={handlerecherche} onReset={() => fetchLogs(decodedToken.emp_num_aux)} className="searchn">
+          <form onSubmit={handlerecherche} onReset={() => {fetchLogs(decodedToken.emp_num_aux);setRechID("");}} className="searchn">
             <input
               type="text"
-              placeholder="Id employé"
+              placeholder="Id employee"
               onChange={handleInputChange2}
               value={rechID}
               className="input"
             />
-            <button type="submit" className="rechbut">Rechercher</button>
-            <button type="reset" className="resbut">Annuler</button>
+            <button type="submit" className="rechbut">Search</button>
+            <button type="reset" className="resbut">Reset</button>
           </form>
           <div className="period-nav">
             <button className="nav-btn" onClick={() => changeMonth(-1)}>&lt;</button>

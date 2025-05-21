@@ -6,6 +6,7 @@ import workScheduleRoutes from './routes/WorksSchRoutes.js';
 import logsRoutes from './routes/logsRoutes.js';
 import alertRoutes from './routes/AlertsRoutes.js';
 import profileRoutes from './routes/profileRoutes.js';
+import StatsRoutes from './routes/StatsRoutes.js';
 
 
 config(); 
@@ -19,6 +20,7 @@ app.use('/workplan',workScheduleRoutes);
 app.use('/logsplan',logsRoutes);
 app.use('/alertplan',alertRoutes);
 app.use('/profileplan',profileRoutes);
+app.use('/statplan',StatsRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

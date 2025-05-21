@@ -41,7 +41,7 @@ h1 {
   margin-top: 15px;
   margin-bottom: 5px;
   width: 100%;
-  max-width: 900px;
+  max-width: 950px;
 }
 
 .calendar-grid {
@@ -50,7 +50,7 @@ h1 {
   gap: 10px;
   margin-top: 10px;
   width: 100%;
-  max-width: 900px;
+  max-width: 950px;
   height: 600px; /* Fixed height */
   overflow-y: auto;
 }
