@@ -15,9 +15,6 @@ const Sidebar = () => {
                         <NavLink to="/notifs" className="sidebar-link" activeClassName="active">
                             Notifications
                         </NavLink>
-                        <NavLink to="/salaire" className="sidebar-link" activeClassName="active">
-                            Salaire
-                        </NavLink>
                     
                     
                     

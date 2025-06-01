@@ -19,7 +19,7 @@ const SideAd = () => {
                         <NavLink to="/notifsAd" className="sidebar-link" activeClassName="active">
                             Notifications
                         </NavLink>
-                        <NavLink to="/salaireAd" className="sidebar-link" activeClassName="active">
+                        <NavLink to="/statistics" className="sidebar-link" activeClassName="active">
                             Dashboard
                         </NavLink>
                         <NavLink to="/inputsAd" className="sidebar-link" activeClassName="active">

@@ -1,47 +1,47 @@
 import express from 'express';
 import connectDB from '../db.js';
+
 const router = express.Router();
-const db = await connectDB();
+
+let db;
+
+// Setup the route once the DB is connected
+connectDB().then((connection) => {
+  db = connection;
 router.get('/statistics', async (req, res) => {
   try {
     const [
-      [complianceRateResult],
-      [discrepancyRateResult],
-      [resolutionRateResult],
-      [unjustifiedPresenceResult],
-      [lostHoursResult],
-      topEmployees,
-      lateTrend
+      [complianceRows],  
+      [discrepancyRows],
+      [resolutionRows],
+      [unjustifiedRows],
+      [lostHoursRows],
+      [topEmployeesRows],
+      [lateTrendRows],
+      [lateArrivalRows],
+      [shortShiftRows],
+      [inapprovedAbsenceRows]
     ] = await Promise.all([
-      // 1. Attendance Compliance Rate
       db.query(`
         SELECT ROUND(
           SUM(CASE WHEN anomaly IS NULL THEN 1 ELSE 0 END) / COUNT(*) * 100, 2
         ) AS compliance_rate
         FROM attendance_logs2
       `),
-
-      // 2. Discrepancy Rate
       db.query(`
         SELECT ROUND(COUNT(*) / (SELECT COUNT(*) FROM work_schedule) * 100, 2) AS discrepancy_rate
         FROM alerts
         WHERE resolved = 0
       `),
-
-      // 3. Alert Resolution Rate
       db.query(`
         SELECT ROUND(SUM(resolved = 1) / COUNT(*) * 100, 2) AS resolution_rate
         FROM alerts
       `),
-
-      // 4. Unjustified On-site Presence (marked as Sick/Remote/Leave but showed up)
       db.query(`
         SELECT COUNT(*) AS unjustified_presence
         FROM alerts
         WHERE expected_status IN ('S','T','L') AND actual_status = 'on_site'
       `),
-
-      // 5. Work Hours Lost to Absenteeism
       db.query(`
         SELECT ROUND(SUM(
           CASE 
@@ -51,17 +51,14 @@ router.get('/statistics', async (req, res) => {
         ), 2) AS lost_hours
         FROM attendance_logs2
       `),
-
-      // 6. Top 5 Employees with Most Alerts
       db.query(`
         SELECT emp_num_aux, COUNT(*) AS alert_count
         FROM alerts
+        WHERE anomaly NOT LIKE 'Approved absence%'
         GROUP BY emp_num_aux
         ORDER BY alert_count DESC
-        LIMIT 5
+        LIMIT 4;
       `),
-
-      // 7. Late Arrival Trend (Last 30 Days)
       db.query(`
         SELECT detected_on AS date, COUNT(*) AS late_count
         FROM alerts
@@ -69,22 +66,78 @@ router.get('/statistics', async (req, res) => {
           AND detected_on >= CURDATE() - INTERVAL 30 DAY
         GROUP BY detected_on
         ORDER BY detected_on
+      `),
+      // Most alerted employees for late arrivals
+      db.query(`
+        SELECT emp_num_aux, COUNT(*) AS late_count
+        FROM alerts
+        WHERE anomaly = 'Late arrival' OR actual_status = 'late'
+        GROUP BY emp_num_aux
+        ORDER BY late_count DESC
+        LIMIT 4;
+      `),
+      // Most alerted employees for short shifts
+      db.query(`
+        SELECT emp_num_aux, COUNT(*) AS short_shift_count
+        FROM alerts
+        WHERE anomaly LIKE '%Short shift%' OR anomaly LIKE '%early departure%'
+        GROUP BY emp_num_aux
+        ORDER BY short_shift_count DESC
+        LIMIT 4;
+      `),
+      // Most alerted employees for unapproved absences
+      db.query(`
+        SELECT emp_num_aux, COUNT(*) AS absence_count
+        FROM alerts
+        WHERE anomaly = 'Inapproved absence' OR (anomaly LIKE '%absence%' AND anomaly NOT LIKE 'Approved absence%')
+        GROUP BY emp_num_aux
+        ORDER BY absence_count DESC
+        LIMIT 4;
       `)
     ]);
 
+    const topEmployees = topEmployeesRows.map(row => ({
+      emp_num_aux: row.emp_num_aux,
+      alert_count: row.alert_count
+    }));
+
+    const lateTrend = lateTrendRows.map(row => ({
+      date: row.date,
+      late_count: row.late_count
+    }));
+
+    const mostLateEmployees = lateArrivalRows.map(row => ({
+      emp_num_aux: row.emp_num_aux,
+      late_count: row.late_count
+    }));
+
+    const mostShortShiftEmployees = shortShiftRows.map(row => ({
+      emp_num_aux: row.emp_num_aux,
+      short_shift_count: row.short_shift_count
+    }));
+
+    const mostAbsentEmployees = inapprovedAbsenceRows.map(row => ({
+      emp_num_aux: row.emp_num_aux,
+      absence_count: row.absence_count
+    }));
+
     res.json({
-      complianceRate: complianceRateResult.compliance_rate,
-      discrepancyRate: discrepancyRateResult.discrepancy_rate,
-      resolutionRate: resolutionRateResult.resolution_rate,
-      unjustifiedPresence: unjustifiedPresenceResult.unjustified_presence,
-      absenteeLostHours: lostHoursResult.lost_hours,
+      complianceRate: complianceRows[0]?.compliance_rate || 0,
+      discrepancyRate: discrepancyRows[0]?.discrepancy_rate || 0,
+      resolutionRate: resolutionRows[0]?.resolution_rate || 0,
+      unjustifiedPresence: unjustifiedRows[0]?.unjustified_presence || 0,
+      absenteeLostHours: lostHoursRows[0]?.lost_hours || 0,
       topAlertedEmployees: topEmployees,
-      lateTrend: lateTrend
+      lateTrend: lateTrend,
+      mostLateEmployees: mostLateEmployees,
+      mostShortShiftEmployees: mostShortShiftEmployees,
+      mostAbsentEmployees: mostAbsentEmployees
     });
   } catch (error) {
-    console.error('Error fetching professional statistics:', error);
+    console.error('Error fetching statistics:', error);
     res.status(500).json({ error: 'Failed to fetch statistics' });
   }
+});
 });
 
 export default router;

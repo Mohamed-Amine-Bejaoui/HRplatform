@@ -1,4 +1,3 @@
-
 .table-container {
   max-height: 550px; /* Adjust height as needed */
   overflow-y: auto;
@@ -231,4 +230,131 @@ button {
 margin-top: 60px;
 margin-left: 10px;
 
+}
+.empcontainer h1 {
+   font-size: 2.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0 0 0.5rem 0;
+  margin-top: -10px;
+}
+
+/* Approve button styling */
+.approvebtn {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-left: 10px;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.approvebtn:hover {
+  background-color: #218838;
+}
+
+/* Approve modal specific styling */
+.approve-modal-content {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  width: 90%;
+  max-width: 800px;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.approve-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  margin-top: 20px;
+}
+
+.employees-approval-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.approval-employee-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+.approval-employee-info {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 10px;
+}
+
+.approval-employee-info > div {
+  font-size: 14px;
+}
+
+.approval-employee-info strong {
+  color: #333;
+}
+
+.approval-employee-actions {
+  display: flex;
+  gap: 10px;
+  margin-left: 20px;
+}
+
+.approve-btn {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.approve-btn:hover {
+  background-color: #218838;
+}
+
+.no-employees {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+  font-style: italic;
+}
+
+/* Responsive design for approval modal */
+@media (max-width: 768px) {
+  .approval-employee-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 15px;
+  }
+  
+  .approval-employee-info {
+    grid-template-columns: 1fr;
+  }
+  
+  .approval-employee-actions {
+    margin-left: 0;
+    justify-content: center;
+  }
 }

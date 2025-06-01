@@ -123,7 +123,7 @@ const AdDash = () => {
               className="input"
             />
             <button type="submit" className="rechbut">Search</button>
-            <button type="reset" className="resbut">Reset</button>
+            <button type="reset" className="resbut">Default</button>
           </form>
           <div className="period-nav">
             <button className="nav-btn" onClick={() => changeMonth(-1)}>&lt;</button>

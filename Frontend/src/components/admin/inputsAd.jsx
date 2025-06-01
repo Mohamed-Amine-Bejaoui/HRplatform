@@ -70,8 +70,7 @@ const InputsAd = () => {
 
       setMessage(`
         ✅ Cron jobs scheduled successfully!
-        Work: ${workRes.data.note} (${workRes.data.cronExpression})
-        Logs: ${logsRes.data.note} (${logsRes.data.cronExpression})
+       
       `);
       
       setCronDate("");
@@ -91,7 +90,7 @@ const InputsAd = () => {
     <div className="ntf">
       <SideAd />
       <div className="nfcontainer">
-        <h2>Upload Attendance & Work Schedule Files</h2>
+        <h1>Upload Attendance & Work Schedule Files</h1>
 
         <div id="top_buttons">
           {/* Work Files Section */}
@@ -149,7 +148,59 @@ const InputsAd = () => {
               Upload Logs Files
             </button>
           </div>
+          <div style={{ display: "flex", justifyContent: "center", gap: "20px", marginTop: "0px",flexDirection:"row" }}>
+          {/* Work Files Table */}
+          {workFiles.length > 0 && (
+            <div className="file-table">
+              <h4>📂 Work Files Preview</h4>
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>File Name</th>
+                    <th>Size (KB)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {workFiles.map((file, index) => (
+                    <tr key={file.name}>
+                      <td>{index + 1}</td>
+                      <td>{file.name}</td>
+                      <td>{(file.size / 1024).toFixed(2)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Logs Files Table */}
+          {logsFiles.length > 0 && (
+            <div className="file-table">
+              <h4>📂 Logs Files Preview</h4>
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>File Name</th>
+                    <th>Size (KB)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {logsFiles.map((file, index) => (
+                    <tr key={file.name}>
+                      <td>{index + 1}</td>
+                      <td>{file.name}</td>
+                      <td>{(file.size / 1024).toFixed(2)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
+        </div>
+                
 
         {/* Cron Settings Section */}
         <div className="top-form">

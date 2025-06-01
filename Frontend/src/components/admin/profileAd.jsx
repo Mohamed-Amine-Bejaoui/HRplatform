@@ -2,13 +2,15 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import SideAd from './sideAd';
 import '../../Styles/profile.css';
+import { jwtDecode } from "jwt-decode";
 
 const ProfileAd = () => {
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const empNumAux = "10000";
-
+  const storedUser = localStorage.getItem("authToken");
+  const decodedToken = jwtDecode(storedUser);
+  const empNumAux=decodedToken.emp_num_aux
   useEffect(() => {
     const fetchProfile = async () => {
       try {

@@ -1,9 +1,0 @@
-﻿Column1;Column2;Column3;Column4;Column5;Column6;Column7;Column8;Column9;Column10;Column11;Column12;Column13;Column14;Column15;Column16;Column17;Column18;Column19;Column20;Column21;Column22;Column23;Column24;Column25;Column26;Column27;Column28;Column29;Column30
-Member;ID;25;26;27;28;1;2;3;4;5;6;7;8;9;10;11;12;13;14;15;16;17;18;19;20;21;22;23;24
-NOM Prénom ;0040;OK;OK;OK;OK; ; ;OK;OK;OK;OK;OK; ; ;V;V;OK;OK;OK; ; ;OK;OK;OK;P;OK; ; ;OK
-NOM Prénom ;0116;HO;OK;L;L; ; ;HO;OK;OK;L;L; ; ;HO;OK;OK;L;L; ; ;HO;HO;OK;L;L; ; ;HO
-NOM Prénom ;0089;OK;OK;OK;HO; ; ;HO;OK;OK;OK;HO; ; ;HO;OK;HO;OK;HO; ; ;HO;OK;OK;P;HO; ; ;HO
-NOM Prénom ;0112;OK;OK;OK;OK; ; ;HO;OK;HO;OK;HO; ; ;HO;OK;HO;OK;HO; ; ;HO;OK;HO;P;HO; ; ;OK
-NOM Prénom ;10000;OK;OK;OK;OK; ; ;HO;HO;HO;HO;HO; ; ;HO;HO;HO;HO;HO; ; ;HO;OK;OK;P;V; ; ;OK
-NOM Prénom ;0337;OK;OK;OK;OK; ; ;OK;OK;OK;OK;OK; ; ;OK;OK;OK;OK;OK; ; ;OK;OK;HD;P;OK; ; ;OK
-Calendar Legends:;Working day;OK;Vacations;V;Recovery;R;Public Holiday;P;Home Office;HO;Half-Day;HD;Training;T;Business Trip;BT;Sickness;S;Paid Permission;L;Unpaid Permission;L;Paternity Leave;P;Marriage;M;Relatives Death;F;Unjustified Absence
