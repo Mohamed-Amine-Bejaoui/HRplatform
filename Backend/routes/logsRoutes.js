@@ -6,46 +6,35 @@ import path from 'path';
 import cron from 'node-cron';
 import { fileURLToPath } from 'url';
 import connectDB from '../db.js';
-import csv from 'csv-parser';
+import { exec } from 'child_process';
+import util from 'util';
+import nodemailer from 'nodemailer';
+import { configDotenv } from 'dotenv';
+
+configDotenv();
 
 const router = express.Router();
 const db = await connectDB();
+const execAsync = util.promisify(exec);
 
 // Setup directories
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const uploadsDir = path.resolve(__dirname, '../uploads/logs');
 const processedDir = path.resolve(__dirname, '../uploads/processed');
-try {
-  const files = fs.readdirSync(uploadsDir);
-} catch (err) {
-  console.error('Cannot access directory:', err);
-}
+
 [uploadsDir, processedDir].forEach(dir => {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 });
 
-// File upload config (XLS only)
+// File upload config
 const upload = multer({
   storage: multer.diskStorage({
     destination: (req, file, cb) => cb(null, uploadsDir),
     filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
   })
 });
-router.get('/debug-uploads', (req, res) => {
-  try {
-    const files = fs.readdirSync(uploadsDir);
-    res.json({
-      uploadsDir,
-      exists: fs.existsSync(uploadsDir),
-      fileCount: files.length,
-      files: files,
-      parentDirContents: fs.readdirSync(path.dirname(uploadsDir))
-    });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+
 // Upload endpoint
 router.post('/upload', upload.array('files'), (req, res) => {
   if (!req.files?.length) return res.status(400).json({ message: 'No files uploaded.' });
@@ -53,7 +42,7 @@ router.post('/upload', upload.array('files'), (req, res) => {
 });
 
 // Employee presence endpoint
-router.get('/prescence/:id', async (req, res) => {
+router.get('/presence/:id', async (req, res) => {
   try {
     const [rows] = await db.query('SELECT * FROM attendance_logs2 WHERE emp_id = ?', [req.params.id]);
     res.json(rows);
@@ -88,34 +77,24 @@ router.post('/process-cron', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error scheduling cron job:', error);
     res.status(500).json({ message: 'Failed to schedule cron job' });
   }
 });
 
+// Process files for a specific month
 async function processFilesForMonth(year, month) {
-  console.log(`\n⏳ Starting processing for ${year}-${month}...`);
   try {
-    // Log directory check
-    if (!fs.existsSync(uploadsDir)) {
-      console.error(`❌ Uploads directory not found: ${uploadsDir}`);
-      return;
-    }
+    if (!fs.existsSync(uploadsDir)) return;
 
     const files = fs.readdirSync(uploadsDir);
-    console.log(`📁 Found ${files.length} files in upload directory`);
-
     let processedCount = 0;
-    let skippedCount = 0;
 
     for (const file of files) {
       const filePath = path.join(uploadsDir, file);
       const ext = path.extname(file).toLowerCase();
 
-      if (!['.xls', '.xlsx'].includes(ext)) {
-        skippedCount++;
-        continue;
-      }
+      if (!['.xls', '.xlsx'].includes(ext)) continue;
+
       try {
         const results = await processXlsFile(filePath, year, month);
         
@@ -123,47 +102,53 @@ async function processFilesForMonth(year, month) {
           await saveToDatabase(results);
           fs.renameSync(filePath, path.join(processedDir, file));
           processedCount++;
-        } else {
-          skippedCount++;
         }
       } catch (fileError) {
-        console.error(`❌ Error processing file ${file}:`, fileError.message);
-        skippedCount++;
+        console.error(`Error processing file ${file}:`, fileError.message);
       }
     }
 
-    console.log(`\n✔️ Processing completed:
-    - Processed files: ${processedCount}
-    - Skipped files: ${skippedCount}
-    - Total files: ${files.length}`);
+    console.log(`Processing completed: ${processedCount} files processed`);
+    
+    // Send emails only once after all files are processed
+    if (processedCount > 0 && !emailProcessing) {
+      emailProcessing = true;
+      console.log('⏳ Waiting 5 seconds for all alerts to be generated...');
+      
+      setTimeout(async () => {
+        try {
+          console.log('📧 Starting email sending process...');
+          await sendAlertEmails();
+          emailProcessing = false;
+        } catch (error) {
+          console.error('❌ Error sending emails:', error);
+          emailProcessing = false;
+        }
+      }, 5000); // Wait 5 seconds for all alerts to be generated
+    }
 
   } catch (error) {
-    console.error('\n❌ Critical processing error:', error);
+    console.error('Processing error:', error);
+    emailProcessing = false;
   }
 }
+
+// Process XLS file
 async function processXlsFile(filePath, targetYear, targetMonth) {
   return new Promise((resolve, reject) => {
     try {
       const results = [];
       const workbook = xlsx.readFile(filePath);
-      const sheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[sheetName];
+      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
       
-
-      // Get the date from French header
+      // Extract date from header
       const frenchDatePattern = /Pointages du \w+\. (\d+) (\w+) (\d+)/;
       const headerCell = worksheet['A1'] || worksheet['B1'];
       
-      if (!headerCell) {
-        console.warn('No header found in worksheet');
-        return resolve([]);
-      }
+      if (!headerCell) return resolve([]);
 
       const dateMatch = headerCell.v.toString().match(frenchDatePattern);
-      if (!dateMatch) {
-        console.warn('Could not extract date from header:', headerCell.v);
-        return resolve([]);
-      }
+      if (!dateMatch) return resolve([]);
 
       const [, day, frenchMonth, year] = dateMatch;
       const monthMap = {
@@ -173,73 +158,86 @@ async function processXlsFile(filePath, targetYear, targetMonth) {
       };
       
       const monthStr = monthMap[frenchMonth.toLowerCase()];
-      if (!monthStr) {
-        console.warn('Unknown French month:', frenchMonth);
-        return resolve([]);
-      }
-
-      // Check if the file date matches the target month and year
-      if (year !== targetYear || monthStr !== targetMonth) {
+      if (!monthStr || year !== targetYear || monthStr !== targetMonth) {
         return resolve([]);
       }
 
       const formattedDate = `${year}-${monthStr}-${day.padStart(2, '0')}`;
       
-      // Convert Excel data to JSON
+      // Convert to JSON
       const jsonData = xlsx.utils.sheet_to_json(worksheet, {
         header: ['matricule', 'nom_prenom', 'empty1', 'empty2', 'empty3', 'empty4', 
-                'horaire_prev', 'empty5','prévue','prem_point', 'dern_point', 'nb_point', 'empty6', 'empty7'],
+                'horaire_prev', 'empty5','prévue','prem_point', 'dern_point', 'nb_point'],
         range: 1,
         defval: null
       });
-      
 
       // Process each row
-      jsonData.forEach((row, index) => {
-        try {
-          // Skip empty rows or rows without employee ID
-          if (!row.matricule || !row.nom_prenom) return;
-          if (row.matricule === 'Matricule' || row.matricule === 'Faurecia') return;
-          // Enhanced datetime conversion function
-        const convertExcelTime = (excelSerial, fieldName) => {
-    if (excelSerial === null || excelSerial === undefined) {
-        return null;
-    }
-    
-    try {
-        // Excel serial dates are days since 1900-01-00 (with 1900 incorrectly treated as leap year)
-        // JavaScript dates are milliseconds since 1970-01-01
-        
-        // First, check if this is a pure time value (no date component)
-        if (excelSerial < 1) {
-            // It's a time-only value (fraction of a day)
-            const totalSeconds = excelSerial * 86400; // 86400 seconds in a day
-            const hours = Math.floor(totalSeconds / 3600) % 24;
-            const minutes = Math.floor((totalSeconds % 3600) / 60);
-            const seconds = Math.floor(totalSeconds % 60);
-            
-            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        } else {
-            // It's a date-time value
-            // Adjust for Excel's 1900 leap year bug (Excel thinks 1900 was a leap year)
-            const excelEpoch = new Date(1899, 11, 31);
-            const excelBug = excelSerial >= 61 ? 1 : 0; // The bug affects serials >= 61 (1900-02-29)
-            
-            const utcDate = new Date(excelEpoch.getTime() + 
-                                   (excelSerial - excelBug) * 86400 * 1000);
-            
-            // Extract time components
-            const hours = utcDate.getUTCHours();
-            const minutes = utcDate.getUTCMinutes();
-            const seconds = utcDate.getUTCSeconds();
-            
-            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      jsonData.forEach((row) => {
+        if (!row.matricule || !row.nom_prenom) return;
+        if (row.matricule === 'Matricule' || row.matricule === 'Faurecia') return;
+
+        const checkIn = convertExcelTime(row.prem_point);
+        const checkOut = convertExcelTime(row.dern_point);
+        const workedHours = calculateWorkedHours(checkIn, checkOut);
+
+        let anomaly = null;
+        if (!checkIn && !checkOut) {
+          anomaly = 'Absence';
+        } else if (checkIn && isLate(checkIn)) {
+          anomaly = 'Late Arrival';
+        } else if (workedHours !== null && workedHours < 7) {
+          anomaly = 'Short Shift';
         }
-    } catch (e) {
-        console.warn(`Error converting Excel time for ${fieldName}:`, e);
-        return null;
+
+        results.push({
+          emp_id: row.matricule,
+          name: row.nom_prenom,
+          date: formattedDate,
+          workplace: 'Faurecia',
+          check_in_actual: checkIn,
+          check_out_actual: checkOut,
+          worked_hours: workedHours,
+          anomaly: anomaly
+        });
+      });
+      
+      resolve(results);
+    } catch (err) {
+      reject(err);
     }
+  });
+}
+
+// Convert Excel time to readable format
+const convertExcelTime = (excelSerial) => {
+  if (excelSerial === null || excelSerial === undefined) return null;
+  
+  try {
+    if (excelSerial < 1) {
+      const totalSeconds = excelSerial * 86400;
+      const hours = Math.floor(totalSeconds / 3600) % 24;
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = Math.floor(totalSeconds % 60);
+      
+      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    } else {
+      const excelEpoch = new Date(1899, 11, 31);
+      const excelBug = excelSerial >= 61 ? 1 : 0;
+      const utcDate = new Date(excelEpoch.getTime() + (excelSerial - excelBug) * 86400 * 1000);
+      
+      const hours = utcDate.getUTCHours();
+      const minutes = utcDate.getUTCMinutes();
+      const seconds = utcDate.getUTCSeconds();
+      
+      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+  } catch (e) {
+    return null;
+  }
 };
+
+// Calculate worked hours
 const calculateWorkedHours = (checkIn, checkOut) => {
   if (!checkIn || !checkOut) return null;
 
@@ -249,28 +247,16 @@ const calculateWorkedHours = (checkIn, checkOut) => {
 
     const checkInSeconds = inH * 3600 + inM * 60 + (inS || 0);
     const checkOutSeconds = outH * 3600 + outM * 60 + (outS || 0);
-
     const workedSeconds = checkOutSeconds - checkInSeconds;
 
-    if (workedSeconds <= 0) return null; // Invalid time
-
-    const workedHours = workedSeconds / 3600;
-    return parseFloat(workedHours.toFixed(2));
+    if (workedSeconds <= 0) return null;
+    return parseFloat((workedSeconds / 3600).toFixed(2));
   } catch (e) {
-    console.warn('⛔ Failed to calculate worked hours:', e.message);
     return null;
   }
 };
 
-          // Usage:
-     const checkIn = convertExcelTime(row.prem_point);
-const checkOut = convertExcelTime(row.dern_point);
-const workedHours = calculateWorkedHours(checkIn, checkOut, row.nb_point);
-
-
- 
-  // Helper to check if check-in is after a defined threshold (e.g., 09:00)
-
+// Check if employee is late
 const isLate = (checkIn) => {
   try {
     const [h, m] = checkIn.split(':').map(Number);
@@ -280,70 +266,146 @@ const isLate = (checkIn) => {
   }
 };
 
-let anomaly = null;
-
-if (!checkIn && !checkOut) {
-  anomaly = 'Absence';
-} else if (checkIn && isLate(checkIn)) {
-  anomaly = 'Late Arrival';
-} else if (workedHours !== null && workedHours < 7) {
-  anomaly = 'Short Shift';
-}
-
-
-        const record = {
-          emp_id: row.matricule,
-          name: row.nom_prenom,
-          date: formattedDate,
-          workplace: 'Faurecia',
-          check_in_actual: checkIn,
-          check_out_actual: checkOut,
-          worked_hours: workedHours,
-          anomaly: anomaly
-        };
-          
-          results.push(record);
-        } catch (err) {
-          console.warn(`⏭ Error in row ${index}:`, err.message);
-        }
-      });
-      
-      resolve(results);
-    } catch (err) {
-      console.error('Error processing file:', err);
-      reject(err);
+// Email transporter
+const createEmailTransporter = () => {
+  return nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASSWORD
     }
   });
+};
 
+// Add a flag to track if emails are being sent
+let emailProcessing = false;
+
+// Updated sendAlertEmails function - ONE email per employee with ALL alerts
+async function sendAlertEmails() {
+  try {
+    console.log(`📧 Looking for employees with alerts...`);
+    
+    const query = `
+      SELECT 
+        a.emp_num_aux,
+        COUNT(*) as total_alert_count,
+        GROUP_CONCAT(
+          CONCAT(DATE(a.detected_on), ': ', a.anomaly) 
+          ORDER BY a.detected_on DESC 
+          SEPARATOR ' | '
+        ) as all_alerts_with_dates,
+        ua.emp_mail
+      FROM alerts a
+      LEFT JOIN users_aux ua ON a.emp_num_aux = ua.emp_num_aux
+      WHERE ua.emp_mail IS NOT NULL
+        AND ua.aux_status = 1
+      GROUP BY a.emp_num_aux, ua.emp_mail
+    `;
+
+    const [employees] = await db.query(query);
+    console.log(`📧 Found ${employees.length} employees with alerts`);
+    
+    if (employees.length === 0) {
+      console.log('📧 No employees with valid emails found');
+      return;
+    }
+
+    // Show alert counts for each employee
+    console.log('📊 Alert summary by employee:');
+    employees.forEach(emp => {
+      console.log(`   - Employee ${emp.emp_num_aux}: ${emp.total_alert_count} alerts`);
+    });
+
+    const transporter = createEmailTransporter();
+    let sentEmails = 0;
+
+    for (const employee of employees) {
+      try {
+        await sendSimpleAlertEmail(transporter, employee);
+        console.log(`✅ Email sent to ${employee.emp_mail} (${employee.total_alert_count} alerts)`);
+        sentEmails++;
+        
+        // Small delay between emails
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+      } catch (emailError) {
+        console.error(`❌ Failed to send email to ${employee.emp_mail}:`, emailError.message);
+      }
+    }
+    
+    console.log(`📧 Final result: ${sentEmails} emails sent successfully`);
+    
+  } catch (error) {
+    console.error('❌ Error in sendAlertEmails:', error);
+  }
 }
 
-import { exec } from 'child_process';
-import util from 'util';
+// Simple email function
+async function sendSimpleAlertEmail(transporter, employee) {
+  const { emp_num_aux, total_alert_count, all_alerts_with_dates, emp_mail } = employee;
 
-const execAsync = util.promisify(exec);
+  const alertsList = all_alerts_with_dates.split(' | ').map(alert => {
+    const [date, type] = alert.split(': ');
+    return `${new Date(date).toLocaleDateString()}: ${type}`;
+  }).join('\n');
 
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: emp_mail,
+    subject: `Attendance Alert - ${total_alert_count} Issue${total_alert_count > 1 ? 's' : ''} Need Verification`,
+    html: `
+      <h2>Attendance Alert</h2>
+      <p><strong>Employee ID:</strong> ${emp_num_aux}</p>
+      <p><strong>Total Alerts:</strong> ${total_alert_count}</p>
+      
+      <h3>Alert Details:</h3>
+      <pre>${alertsList}</pre>
+      
+      <p><strong>Action Required:</strong> Please verify these attendance records and contact HR within 48 hours.</p>
+      <p>Contact: hr@company.com</p>
+    `,
+    text: `
+Attendance Alert
+
+Employee ID: ${emp_num_aux}
+Total Alerts: ${total_alert_count}
+
+Alert Details:
+${alertsList}
+
+Action Required: Please verify these attendance records and contact HR within 48 hours.
+Contact: hr@company.com
+    `
+  };
+
+  await transporter.sendMail(mailOptions);
+}
+
+// Run Python anomaly detection
 async function runPythonAnomalyDetection() {
   const pythonPath = 'C:\\Users\\aminh\\env\\Scripts\\python.exe';
   const scriptPath = 'C:\\Users\\aminh\\attendance-ai\\detect_anomalies.py';
-
   const cmd = `"${pythonPath}" "${scriptPath}"`;
 
   try {
+    console.log('🐍 Starting Python script execution...');
     const { stdout, stderr } = await execAsync(cmd);
-    console.log('🐍 Python Output:\n', stdout);
-    if (stderr) console.error('⚠️ Python Warnings:\n', stderr);
+    
+    if (stdout) console.log('🐍 Python stdout:', stdout);
+    if (stderr) console.log('⚠️ Python stderr:', stderr);
+    
+    console.log('✅ Python script completed successfully');
+    
   } catch (err) {
-    console.error('❌ Python Script Failed:\n', err.message);
+    console.error('❌ Python Script Failed:', err.message);
     throw err;
   }
 }
 
+// Save to database
 export async function saveToDatabase(results) {
   try {
-    if (results.length === 0) {
-      console.warn('No valid records to insert');
-      return;
-    }
+    if (results.length === 0) return;
 
     const query = `
       INSERT IGNORE INTO attendance_logs2 (
@@ -353,21 +415,18 @@ export async function saveToDatabase(results) {
       ) VALUES ?`;
     
     const values = results.map(r => [
-      r.emp_id, 
-      r.name, 
-      r.date,
-      r.workplace,
-      r.check_in_actual,
-      r.check_out_actual,
-      r.worked_hours,
-      r.anomaly
+      r.emp_id, r.name, r.date, r.workplace,
+      r.check_in_actual, r.check_out_actual,
+      r.worked_hours, r.anomaly
     ]);
 
     await db.query(query, [values]);
-    console.log(`✅ Successfully inserted ${results.length} records`);
-
-    // ✅ Trigger anomaly detection after successful insert
-    console.log(`🚀 Running anomaly detection...`);
+    console.log(`✅ Successfully inserted ${results.length} records into attendance_logs2`);
+    
+    const recordsWithAnomalies = results.filter(r => r.anomaly !== null);
+    console.log(`📊 Records with anomalies: ${recordsWithAnomalies.length}`);
+    
+    console.log('🐍 Running Python anomaly detection...');
     await runPythonAnomalyDetection();
     
   } catch (error) {
@@ -375,53 +434,90 @@ export async function saveToDatabase(results) {
     throw error;
   }
 }
-router.get('/presence', async (req, res) => {
+
+// API Routes
+router.post('/send-alert-emails', async (req, res) => {
   try {
-    const { month, year, name } = req.query;
-    if (!month || !year) {
-      return res.status(400).json({ error: 'Month and year required.' });
-    }
-
-    const startDate = `${year}-${month.padStart(2, '0')}-01`;
-    const endDate = `${year}-${month.padStart(2, '0')}-31`;
-    let query = `SELECT * FROM attendance_logs2 WHERE date BETWEEN ? AND ?`;
-    const params = [startDate, endDate];
-
-    if (name) {
-      query += ` AND name LIKE ?`;
-      params.push(`%${name}%`);
-    }
-
-    const [rows] = await db.query(query, params);
-    res.json(rows);
+    await sendAlertEmails();
+    res.json({ message: 'Alert emails sent successfully' });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: 'Failed to send emails' });
   }
 });
 
-// Get attendance data for specific employee
-router.get('/presence/:id', async (req, res) => {
+router.get('/test-email', async (req, res) => {
   try {
-    const { month, year } = req.query;
-    const empId = req.params.id;
-
-    if (!month || !year) {
-      return res.status(400).json({ error: 'Month and year required.' });
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+      return res.status(500).json({ error: 'Missing email credentials' });
     }
+    
+    const transporter = createEmailTransporter();
+    await transporter.verify();
+    
+    const testEmail = {
+      from: process.env.EMAIL_USER,
+      to: process.env.EMAIL_USER,
+      subject: 'HR Platform Email Test',
+      html: '<h2>✅ Email Test Successful!</h2>'
+    };
 
-    const startDate = `${year}-${month.padStart(2, '0')}-01`;
-    const endDate = `${year}-${month.padStart(2, '0')}-31`;
-
-    const [rows] = await db.query(
-      `SELECT * FROM attendance_logs2 
-       WHERE emp_id = ? AND date BETWEEN ? AND ?`,
-      [empId, startDate, endDate]
-    );
-
-    res.json(rows);
+    await transporter.sendMail(testEmail);
+    res.json({ message: 'Test email sent successfully' });
+    
   } catch (error) {
-    console.error(error);
+    res.status(500).json({ error: 'Email test failed', details: error.message });
+  }
+});
+
+// Add this debug route to check alerts data
+router.get('/debug-alerts', async (req, res) => {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Check all alerts for today
+    const [allAlerts] = await db.query(
+      'SELECT * FROM alerts WHERE DATE(detected_on) = ? ORDER BY id DESC LIMIT 10', 
+      [today]
+    );
+    
+    // Check employees with emails
+    const [employeesWithEmails] = await db.query(`
+      SELECT 
+        a.emp_num_aux,
+        a.anomaly,
+        a.detected_on,
+        ua.emp_mail,
+        ua.aux_status
+      FROM alerts a
+      LEFT JOIN users_aux ua ON a.emp_num_aux = ua.emp_num_aux
+      WHERE DATE(a.detected_on) = ?
+      ORDER BY a.id DESC LIMIT 10
+    `, [today]);
+
+    // Check the exact query from sendAlertEmails
+    const [emailQuery] = await db.query(`
+      SELECT 
+        a.emp_num_aux,
+        COUNT(*) as alert_count,
+        GROUP_CONCAT(DISTINCT a.anomaly SEPARATOR ', ') as alert_types,
+        ua.emp_mail
+      FROM alerts a
+      LEFT JOIN users_aux ua ON a.emp_num_aux = ua.emp_num_aux
+      WHERE DATE(a.detected_on) = ? 
+        AND ua.emp_mail IS NOT NULL
+        AND ua.aux_status = 1
+      GROUP BY a.emp_num_aux, ua.emp_mail
+    `, [today]);
+
+    res.json({
+      today,
+      totalAlerts: allAlerts.length,
+      allAlerts,
+      employeesWithEmails,
+      emailQueryResults: emailQuery
+    });
+
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
