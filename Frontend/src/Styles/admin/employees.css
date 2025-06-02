@@ -4,7 +4,9 @@
   width: 99%;
   border: 0px solid #ddd; /* Optional: adds a border for better UI */
 }
-
+.abouda{
+  background-color: #008000;
+}
 .tablex {
   width: 100%; /* Ensure the table takes full width */
   border-collapse: collapse;
