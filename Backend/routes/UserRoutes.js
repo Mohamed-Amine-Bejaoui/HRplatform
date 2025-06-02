@@ -89,7 +89,7 @@ const db = await connectDB();
   })
   router.delete('/delemp/:num', async (req, res) => {
   try {
-    console.log('Delete request for employee:', req.params.num); // Debug log
+    console.log('DELETE request for employee:', req.params.num);
     
     // First check if employee exists
     const checkQuery = 'SELECT emp_mail FROM users_aux WHERE emp_num_aux = ?';
@@ -103,18 +103,18 @@ const db = await connectDB();
     const email = checkRows[0].emp_mail;
     console.log('Found employee email:', email);
 
-    // Delete from login table first (if email exists)
+    // Delete from login table first
     if (email) {
       const deleteLoginQuery = 'DELETE FROM login WHERE emp_mail = ?';
-      await db.query(deleteLoginQuery, [email]);
-      console.log('Deleted from login table');
+      const [loginResult] = await db.query(deleteLoginQuery, [email]);
+      console.log('Login delete result:', loginResult.affectedRows);
     }
 
     // Delete from users_aux table
     const deleteUserQuery = 'DELETE FROM users_aux WHERE emp_num_aux = ?';
     const [deleteResult] = await db.query(deleteUserQuery, [req.params.num]);
     
-    console.log('Delete result:', deleteResult);
+    console.log('User delete result:', deleteResult.affectedRows);
 
     if (deleteResult.affectedRows === 0) {
       return res.status(404).json({ error: 'Employee not found or already deleted' });
@@ -122,7 +122,8 @@ const db = await connectDB();
 
     res.status(200).json({ 
       message: 'Employee deleted successfully',
-      deletedEmployee: req.params.num 
+      deletedEmployee: req.params.num,
+      affectedRows: deleteResult.affectedRows
     });
 
   } catch (error) {
@@ -190,37 +191,37 @@ const db = await connectDB();
     }
   });
   router.get("/inactive-employees", async (req, res) => {
-    try {
-        const query = `
-            SELECT * 
-            FROM users_aux ua
-            LEFT JOIN login l ON ua.emp_num_aux = l.emp_num_aux
-            WHERE ua.aux_status = 0
-            
-        `;
-        
-        const [results] = await db.query(query);
-        
-        const inactiveEmployees = results.map(employee => ({
-            id: employee.id,
-            emp_num_aux: employee.emp_num_aux,
-            emp_mail: employee.emp_mail,
-            emp_type_aux: employee.emp_type_aux,
-            emp_join_aux: employee.emp_join_aux,
-            contract_finish: employee.contract_finish,
-            aux_status: employee.aux_status,
-            emp_vdays_aux: employee.emp_vdays_aux,
-            role: employee.role,
-        }));
-        
-        res.json({
-            count: inactiveEmployees.length,
-            employees: inactiveEmployees
-        });
-    } catch (err) {
-        console.error('Database error:', err);
-        res.status(500).json({ error: 'Failed to fetch inactive employees' });
-    }
+  try {
+    const query = `
+      SELECT 
+        ua.id,
+        ua.emp_num_aux,
+        ua.emp_mail,
+        ua.emp_type_aux,
+        ua.emp_join_aux,
+        ua.contract_finish,
+        ua.aux_status,
+        ua.emp_vdays_aux,
+        l.role
+      FROM users_aux ua
+      LEFT JOIN login l ON ua.emp_num_aux = l.emp_num_aux
+      WHERE ua.aux_status = 0
+      ORDER BY ua.id DESC
+    `;
+    
+    const [results] = await db.query(query);
+    
+    console.log('Inactive employees found:', results.length); // Debug log
+    console.log('Sample employee:', results[0]); // Debug log
+    
+    res.json({
+      count: results.length,
+      employees: results
+    });
+  } catch (err) {
+    console.error('Database error:', err);
+    res.status(500).json({ error: 'Failed to fetch inactive employees' });
+  }
 });
   
 export default router;

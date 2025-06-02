@@ -42,6 +42,11 @@ const EmployeesAd = () => {
         throw new Error("Failed to fetch inactive employees");
       }
       const data = await response.json();
+      
+      // Debug: Log the actual data structure
+      console.log('Inactive employees data:', data);
+      console.log('First employee:', data.employees[0]);
+      
       setInactiveEmployees(data.employees);
     } catch (error) {
       console.error('Error fetching inactive employees:', error);
@@ -84,6 +89,8 @@ const EmployeesAd = () => {
 
   const handleApproveEmployee = async (empNumAux) => {
     try {
+      console.log('Approving employee:', empNumAux); // Debug log
+      
       const response = await fetch(`http://localhost:5000/user/patemp/${empNumAux}`, {
         method: 'PATCH',
         headers: {
@@ -92,29 +99,38 @@ const EmployeesAd = () => {
         body: JSON.stringify({ aux_status: 1 }),
       });
 
+      console.log('Approve response status:', response.status); // Debug log
+
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Approve failed:', errorText);
         throw new Error('Failed to approve employee');
       }
 
+      const result = await response.json();
+      console.log('Approve result:', result); // Debug log
+
       // Remove from inactive list
-      setInactiveEmployees(prev => 
-        prev.filter(emp => emp.emp_num_aux !== empNumAux)
-      );
+      setInactiveEmployees(prev => {
+        const updated = prev.filter(emp => emp.emp_num_aux !== empNumAux);
+        console.log('Updated inactive list length:', updated.length); // Debug log
+        return updated;
+      });
       
       // Refresh main employees list
-      fetchEmployees();
+      await fetchEmployees();
       
       alert('Employee approved successfully!');
     } catch (error) {
       console.error('Error approving employee:', error);
-      alert('Error approving employee');
+      alert(`Error approving employee: ${error.message}`);
     }
   };
 
   const handleDeleteFromApproval = async (empNumAux) => {
     if (window.confirm('Are you sure you want to delete this employee?')) {
       try {
-        console.log('Attempting to delete employee:', empNumAux); // Debug log
+        console.log('Deleting employee:', empNumAux); // Debug log
         
         const response = await fetch(`http://localhost:5000/user/delemp/${empNumAux}`, {
           method: 'DELETE',
@@ -124,26 +140,26 @@ const EmployeesAd = () => {
         });
 
         console.log('Delete response status:', response.status); // Debug log
-        console.log('Delete response ok:', response.ok); // Debug log
 
         if (!response.ok) {
           const errorText = await response.text();
-          console.error('Delete failed with response:', errorText);
+          console.error('Delete failed:', errorText);
           throw new Error(`Failed to delete: ${response.status} - ${errorText}`);
         }
 
         const result = await response.json();
-        console.log('Delete successful:', result); // Debug log
+        console.log('Delete result:', result); // Debug log
 
         // Remove from inactive list
-        setInactiveEmployees(prev => 
-          prev.filter(emp => emp.emp_num_aux !== empNumAux)
-        );
+        setInactiveEmployees(prev => {
+          const updated = prev.filter(emp => emp.emp_num_aux !== empNumAux);
+          console.log('Updated inactive list length after delete:', updated.length); // Debug log
+          return updated;
+        });
         
         alert('Employee deleted successfully!');
       } catch (error) {
         console.error("Error deleting employee:", error);
-        console.error("Error details:", error.message);
         alert(`Error deleting employee: ${error.message}`);
       }
     }
