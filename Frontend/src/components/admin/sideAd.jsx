@@ -20,7 +20,7 @@ const SideAd = () => {
                             Notifications
                         </NavLink>
                         <NavLink to="/statistics" className="sidebar-link" activeClassName="active">
-                            Dashboard
+                            Statistics
                         </NavLink>
                         <NavLink to="/inputsAd" className="sidebar-link" activeClassName="active">
                         Upload Logs

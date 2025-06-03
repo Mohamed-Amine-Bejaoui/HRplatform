@@ -105,7 +105,7 @@ const NotifsAD = () => {
     <div className='ntf'>
       <SideAd />
       <div className="nfcontainer">
-        <h1>Absence Alerts Management</h1>
+        <h1>Alerts Management</h1>
         
         {error && (
           <div className="error-message">
@@ -116,7 +116,7 @@ const NotifsAD = () => {
         {/* Filter Controls */}
         <div className="filter-controls">
           <div className="filter-group">
-            <label>Absence Type:</label>
+            <label>Anomaly Type:</label>
             <select 
               name="anomaly"
               value={filters.anomaly}
@@ -125,6 +125,7 @@ const NotifsAD = () => {
               <option value="all">All Types</option>
               <option value="Approved absence">Approved Absences</option>
               <option value="Inapproved absence">Inapproved Absences</option>
+              <option value="Unexpected presence">Unexpected presence</option>
               <option value="Late arrival">Late arrival</option>
             </select>
           </div>

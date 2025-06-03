@@ -40,33 +40,41 @@ width: 100%;
 }
 
 /* Ensure each column has a fixed width */
-.tablex th:nth-child(1),.t2 td:nth-child(1) {
-  width: 7%;
+.tablex th:nth-child(1), .t2 td:nth-child(1) { /* ID */
+  width: 5%;
+  text-align: center;
 }
 
-.tablex th:nth-child(2),.t2 td:nth-child(2) {
-  width: 7%;
+.tablex th:nth-child(2), .t2 td:nth-child(2) { /* Mail */
+  width: 30%;
+  word-break: break-word;
 }
 
-.tablex th:nth-child(3),.t2 td:nth-child(3) {
-  width: 29%;
+.tablex th:nth-child(3), .t2 td:nth-child(3) { /* Type */
+  width: 14%;
+  text-align: center;
 }
 
-.tablex th:nth-child(4),.t2 td:nth-child(4) {
-  width: 10%;
+.tablex th:nth-child(4), .t2 td:nth-child(4) { /* Date of Hire */
+  width: 15%;
+  text-align: center;
 }
 
-.tablex th:nth-child(5),.t2 td:nth-child(5) {
-  width: 20%;
+.tablex th:nth-child(5), .t2 td:nth-child(5) { /* Contract End */
+  width: 15%;
+  text-align: center;
 }
 
-.tablex th:nth-child(6),.t2 td:nth-child(6) {
-  width: 10%;
+.tablex th:nth-child(6), .t2 td:nth-child(6) { /* Status */
+  width: 12%;
+  text-align: center;
 }
 
-.tablex th:nth-child(7),.t2 td:nth-child(7) {
-  width: 18%;
+.tablex th:nth-child(7), .t2 td:nth-child(7) { /* Actions */
+  width: 15%;
+  text-align: center;
 }
+
 .btn-container {
   display: flex;
   gap: 10px;

@@ -135,29 +135,44 @@ const db = await connectDB();
   }
 });
   router.patch('/patemp/:num', async (req, res) => {
-    try {
-      const { num } = req.params;
-      const updates = req.body;
-      if (Object.keys(updates).length === 0) {
-        return res.status(400).json({ error: 'No update fields provided' });
-      }
-  
-  
-      const setClause = Object.keys(updates)
-        .map((field) => `${field} = ?`)
-        .join(', ');
-  
-      const values = [...Object.values(updates), num];
-  
-      const query = `UPDATE users_aux SET ${setClause} WHERE emp_num_aux = ?`;
-      await db.query(query, values);
-  
-      res.status(200).json({ message: 'Employee updated successfully' });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: error.message });
+  try {
+    const { num } = req.params;
+    const updates = req.body;
+    
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ error: 'No update fields provided' });
     }
-  });
+
+    // Remove fields that shouldn't be updated (to avoid unique constraint violation)
+    const { emp_num_aux, emp_mail, ...allowedUpdates } = updates;
+    
+    if (Object.keys(allowedUpdates).length === 0) {
+      return res.status(400).json({ error: 'No updatable fields provided' });
+    }
+
+    const setClause = Object.keys(allowedUpdates)
+      .map((field) => `${field} = ?`)
+      .join(', ');
+
+    const values = [...Object.values(allowedUpdates), num];
+
+    const query = `UPDATE users_aux SET ${setClause} WHERE emp_num_aux = ?`;
+    
+    console.log('Update Query:', query); // Debug log
+    console.log('Update Values:', values); // Debug log
+    
+    const [result] = await db.query(query, values);
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Employee not found' });
+    }
+
+    res.status(200).json({ message: 'Employee updated successfully' });
+  } catch (error) {
+    console.error('Update error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
   router.post('/addemp', async (req, res) => {
     try {
       const { emp_num_aux, emp_mail, emp_type_aux, emp_join_aux, contract_finish, aux_status, isAdmin } = req.body;

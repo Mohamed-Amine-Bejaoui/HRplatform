@@ -210,6 +210,7 @@ const EmployeesAd = () => {
       emp_mail: employee.emp_mail,
       emp_type_aux: employee.emp_type_aux,
       emp_join_aux: new Date(employee.emp_join_aux).toISOString().split("T")[0],
+      contract_finish: employee.contract_finish ? new Date(employee.contract_finish).toISOString().split("T")[0] : "",
       aux_status: employee.aux_status,
     });
     setShowModal(true);
@@ -306,11 +307,11 @@ const EmployeesAd = () => {
         <table className="tablex">
           <thead>
             <tr>
-              <th>Num</th>
               <th>ID</th>
               <th>Mail</th>
               <th>Type</th>
               <th>Date of Hire</th>
+              <th>Contract End</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
@@ -321,11 +322,11 @@ const EmployeesAd = () => {
             <tbody>
               {employees.map((employee, index) => (
                 <tr key={index}>
-                  <td>{employee.id}</td>
                   <td>{employee.emp_num_aux}</td>
                   <td>{employee.emp_mail}</td>
                   <td>{employee.emp_type_aux}</td>
                   <td>{new Date(employee.emp_join_aux).toLocaleDateString("fr-FR")}</td>
+                  <td>{employee.contract_finish ? new Date(employee.contract_finish).toLocaleDateString("fr-FR") : "N/A"}</td>
                   <td>{employee.aux_status === 1 ? "Active" : "Inactive"}</td>
                   <td className="btn-container">
                     <button className="update-btn" onClick={() => handleUpdate(employee)}>
@@ -438,7 +439,14 @@ const EmployeesAd = () => {
                   max={getTodayDate()}
                   required 
                 />
-
+                <label>Contract End Date:</label>
+                <input 
+                  type="date" 
+                  name="contract_finish" 
+                  value={formData.contract_finish} 
+                  onChange={handleInputChange}
+                  min={formData.emp_join_aux || getTodayDate()}
+                />
                 <label>Status:</label>
                 <select name="aux_status" value={formData.aux_status} onChange={handleInputChange}>
                   <option value="1">Active</option>

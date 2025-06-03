@@ -9,7 +9,7 @@ const Notifs = () => {
   const [error, setError] = useState(null);
   const storedUser = localStorage.getItem("authToken");
   const decodedToken = jwtDecode(storedUser);
-  const empNumAux = "F777" //decodedToken.emp_num_aux;
+  const empNumAux = decodedToken.emp_num_aux;
   console.log(empNumAux);
   
   const [filters, setFilters] = useState({
@@ -118,6 +118,7 @@ const Notifs = () => {
               <option value="all">All Types</option>
               <option value="Approved absence">Approved Absences</option>
               <option value="Inapproved absence">Inapproved Absences</option>
+              <option value="Unexpected presence">Unexpected presence</option>
               <option value="Late arrival">Late arrival</option>
             </select>
           </div>

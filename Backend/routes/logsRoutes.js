@@ -361,8 +361,6 @@ async function sendSimpleAlertEmail(transporter, employee) {
       <h3>Alert Details:</h3>
       <pre>${alertsList}</pre>
       
-      <p><strong>Action Required:</strong> Please verify these attendance records and contact HR within 48 hours.</p>
-      <p>Contact: hr@company.com</p>
     `,
     text: `
 Attendance Alert
@@ -373,8 +371,6 @@ Total Alerts: ${total_alert_count}
 Alert Details:
 ${alertsList}
 
-Action Required: Please verify these attendance records and contact HR within 48 hours.
-Contact: hr@company.com
     `
   };
 
