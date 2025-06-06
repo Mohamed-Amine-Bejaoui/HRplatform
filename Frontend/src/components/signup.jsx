@@ -6,6 +6,7 @@ const Signup = () => {
   const [formData, setFormData] = useState({
     emp_num_aux: "",
     emp_mail: "",
+    password: "", 
     emp_type_aux: "",
     emp_join_aux: "",
     contract_finish: "",
@@ -123,6 +124,20 @@ const Signup = () => {
               />
             </div>
 
+            {/* Add password field */}
+            <div className="field">
+              <input
+                type="password"
+                name="password"
+                placeholder="Password"
+                value={formData.password}
+                onChange={handleInputChange}
+                required
+                minLength="6"
+                disabled={loading}
+              />
+            </div>
+
             <div className="field">
               <select
                 name="emp_type_aux"
@@ -169,8 +184,7 @@ const Signup = () => {
               />
             </div>
 
-           
-            <div className="field btn"style={{marginTop:"40px"}}> 
+            <div className="field btn" style={{marginTop:"40px"}}> 
               <input 
                 type="submit" 
                 value={loading ? "Registering..." : "Register Employee"} 

@@ -105,7 +105,7 @@ const NotifsAD = () => {
     <div className='ntf'>
       <SideAd />
       <div className="nfcontainer">
-        <h1>Alerts Management</h1>
+        <h1>Alerts</h1>
         
         {error && (
           <div className="error-message">

@@ -93,7 +93,7 @@ const Notifs = () => {
     <div className='ntf'>
       <Sidebar />
       <div className="nfcontainer">
-        <h1>My Alerts</h1>
+        <h1>Alerts</h1>
         
         {error && (
           <div className="error-message">

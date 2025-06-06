@@ -9,25 +9,22 @@ const SideAd = () => {
                         <NavLink to="/admin-dashboard" className="sidebar-link" activeClassName="active">
                             Calendar
                         </NavLink>
+                        <NavLink to="/statistics" className="sidebar-link" activeClassName="active">
+                            Dashboard
+                        </NavLink>
+                        
+                        <NavLink to="/inputsAd" className="sidebar-link" activeClassName="active">
+                        Upload Logs
+                        </NavLink>
+                        <NavLink to="/notifsAd" className="sidebar-link" activeClassName="active">
+                            Alerts
+                        </NavLink>
                         <NavLink to="/employeesAd" className="sidebar-link" activeClassName="active">
                             Employees
                         </NavLink>
-
                         <NavLink to="/profileAd" className="sidebar-link" activeClassName="active">
                             My profile
                         </NavLink>
-                        <NavLink to="/notifsAd" className="sidebar-link" activeClassName="active">
-                            Notifications
-                        </NavLink>
-                        <NavLink to="/statistics" className="sidebar-link" activeClassName="active">
-                            Statistics
-                        </NavLink>
-                        <NavLink to="/inputsAd" className="sidebar-link" activeClassName="active">
-                        Upload Logs
-
-                        </NavLink>
-                    
-                    
                         <NavLink to="/" className="sidebar-link logout-link" activeClassName="active">
                             Logout
                         </NavLink>

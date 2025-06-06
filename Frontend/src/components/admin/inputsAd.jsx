@@ -90,7 +90,7 @@ const InputsAd = () => {
     <div className="ntf">
       <SideAd />
       <div className="nfcontainer">
-        <h1>Upload Attendance & Work Schedule Files</h1>
+        <h1>Upload Machine & Work Schedule Files</h1>
 
         <div id="top_buttons">
           {/* Work Files Section */}
