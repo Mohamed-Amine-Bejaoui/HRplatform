@@ -174,37 +174,77 @@ const db = await connectDB();
   }
 });
   router.post('/addemp', async (req, res) => {
-    try {
-      const { emp_num_aux, emp_mail, emp_type_aux, emp_join_aux, contract_finish, aux_status, isAdmin } = req.body;
-      console.log(aux_status)
-      const query = `
-        INSERT INTO users_aux (emp_num_aux, emp_mail, emp_type_aux, emp_join_aux, contract_finish, aux_status)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `;
-      const values = [emp_num_aux, emp_mail, emp_type_aux, emp_join_aux, contract_finish, aux_status];
-      
-      const [result] = await db.query(query, values);  // MySQL returns an array of results, so you access result[0]
-  
-      if (result.affectedRows === 0) {
-        throw new Error("Employee insertion failed");
-      }
-      
-      const insertedId = result.insertId;  // Get the ID of the last inserted row
-  
-      const query2 = `
-        INSERT INTO login (emp_mail, password_hash, role,emp_num_aux) 
-        VALUES (?, ?, ?,?)
-      `;
-      const role = isAdmin === true ? "admin" : "employee";
-      const values2 = [emp_mail, process.env.PASSWORD_HASH, role, emp_num_aux];
-      const [result2] = await db.query(query2, values2);
-  
-      res.status(200).json({ message: "Employee added successfully", id: insertedId });
-    } catch (error) {
-      console.error("Database Error:", error);
-      res.status(500).json({ message: "Email or ID is not unique", error: error.message });
+  try {
+    const { emp_num_aux, emp_mail, password, emp_type_aux, emp_join_aux, contract_finish, aux_status, isAdmin } = req.body;
+    
+    // Validate required fields
+    if (!emp_num_aux || !emp_mail || !password) {
+      return res.status(400).json({ error: 'Employee ID, email, and password are required' });
     }
-  });
+    
+    // Validate password length
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters long' });
+    }
+    
+    console.log('Adding employee with status:', aux_status);
+    
+    // Hash the password
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    
+    // Insert into users_aux table
+    const query = `
+      INSERT INTO users_aux (emp_num_aux, emp_mail, emp_type_aux, emp_join_aux, contract_finish, aux_status)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `;
+    const values = [emp_num_aux, emp_mail, emp_type_aux, emp_join_aux, contract_finish, aux_status];
+    
+    const [result] = await db.query(query, values);
+
+    if (result.affectedRows === 0) {
+      throw new Error("Employee insertion failed");
+    }
+    
+    const insertedId = result.insertId;
+
+    const query2 = `
+      INSERT INTO login (emp_mail, password_hash, role, emp_num_aux) 
+      VALUES (?, ?, ?, ?)
+    `;
+    const role = isAdmin === true ? "admin" : "employee";
+    const values2 = [emp_mail, hashedPassword, role, emp_num_aux]; 
+    
+    const [result2] = await db.query(query2, values2);
+
+    if (result2.affectedRows === 0) {
+      await db.query('DELETE FROM users_aux WHERE id = ?', [insertedId]);
+      throw new Error("Login account creation failed");
+    }
+
+    res.status(200).json({ 
+      message: "Employee added successfully", 
+      id: insertedId,
+      emp_num_aux: emp_num_aux
+    });
+    
+  } catch (error) {
+    console.error("Database Error:", error);
+    
+    // Handle specific error types
+    if (error.code === 'ER_DUP_ENTRY') {
+      res.status(400).json({ 
+        error: "Employee ID or email already exists",
+        message: "Please use a different employee ID or email address"
+      });
+    } else {
+      res.status(500).json({ 
+        error: "Failed to add employee",
+        message: error.message 
+      });
+    }
+  }
+});
   router.get("/inactive-employees", async (req, res) => {
   try {
     const query = `
