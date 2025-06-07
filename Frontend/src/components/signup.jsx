@@ -165,7 +165,6 @@ const Signup = () => {
                 value={formData.emp_join_aux}
                 onChange={handleInputChange}
                 max={getTodayDate()}
-                required
                 className="date-field"
                 disabled={loading}
               />

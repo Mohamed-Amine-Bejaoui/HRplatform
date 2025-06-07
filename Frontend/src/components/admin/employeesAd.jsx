@@ -14,6 +14,7 @@ const EmployeesAd = () => {
   const [formData, setFormData] = useState({
     emp_num_aux: "",
     emp_mail: "",
+    password: "", 
     emp_type_aux: "",
     emp_join_aux: "",
     aux_status: 1,
@@ -174,6 +175,7 @@ const EmployeesAd = () => {
     setFormData({
       emp_num_aux: "",
       emp_mail: "",
+      password: "", 
       emp_type_aux: "",
       emp_join_aux: "",
       aux_status: 1,
@@ -205,12 +207,28 @@ const EmployeesAd = () => {
 
   const handleUpdate = (employee) => {
     setSelectedEmployee(employee);
+    
+    // Helper function to format date for input fields
+    const formatDateForInput = (dateString) => {
+      if (!dateString || dateString === '0000-00-00' || dateString === '0000-00-00T00:00:00.000Z') {
+        return '';
+      }
+      
+      const date = new Date(dateString);
+      if (isNaN(date.getTime()) || date.getFullYear() < 1900) {
+        return '';
+      }
+      
+      return date.toISOString().split("T")[0];
+    };
+    
     setFormData({
       emp_num_aux: employee.emp_num_aux,
       emp_mail: employee.emp_mail,
+      password: "", // Empty password field for updates
       emp_type_aux: employee.emp_type_aux,
-      emp_join_aux: new Date(employee.emp_join_aux).toISOString().split("T")[0],
-      contract_finish: employee.contract_finish ? new Date(employee.contract_finish).toISOString().split("T")[0] : "",
+      emp_join_aux: formatDateForInput(employee.emp_join_aux),
+      contract_finish: formatDateForInput(employee.contract_finish),
       aux_status: employee.aux_status,
     });
     setShowModal(true);
@@ -290,6 +308,22 @@ const EmployeesAd = () => {
     return today.toISOString().split('T')[0];
   };
 
+  // Add this helper function at the top of your component
+  const formatDate = (dateString) => {
+    if (!dateString || dateString === '0000-00-00' || dateString === '0000-00-00T00:00:00.000Z') {
+      return 'N/A';
+    }
+    
+    const date = new Date(dateString);
+    
+    // Check if date is invalid
+    if (isNaN(date.getTime()) || date.getFullYear() < 1900) {
+      return 'N/A';
+    }
+    
+    return date.toLocaleDateString("fr-FR");
+  };
+
   return (
     <div className="emp">
       <SideAd />
@@ -325,8 +359,8 @@ const EmployeesAd = () => {
                   <td>{employee.emp_num_aux}</td>
                   <td>{employee.emp_mail}</td>
                   <td>{employee.emp_type_aux}</td>
-                  <td>{new Date(employee.emp_join_aux).toLocaleDateString("fr-FR")}</td>
-                  <td>{employee.contract_finish ? new Date(employee.contract_finish).toLocaleDateString("fr-FR") : "N/A"}</td>
+                  <td>{formatDate(employee.emp_join_aux)}</td>
+                  <td>{formatDate(employee.contract_finish)}</td>
                   <td>{employee.aux_status === 1 ? "Active" : "Inactive"}</td>
                   <td className="btn-container">
                     <button className="update-btn" onClick={() => handleUpdate(employee)}>
@@ -406,7 +440,7 @@ const EmployeesAd = () => {
           </div>
         )}
 
-        {/* Modal for Updating Employee */}
+        {/* Modal for Updating Employee - WITH PASSWORD VISIBILITY TOGGLE */}
         {showModal && (
           <div className="modal-overlay" onClick={() => setShowModal(false)}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -414,10 +448,55 @@ const EmployeesAd = () => {
               <h2>Update employee</h2>
               <form onSubmit={handleUpdateSubmit}>
                 <label>ID:</label>
-                <input type="text" name="emp_num_aux" value={formData.emp_num_aux} required readOnly />
+                <input 
+                  type="text" 
+                  name="emp_num_aux" 
+                  value={formData.emp_num_aux} 
+                  onChange={handleInputChange}
+                  required 
+                  readOnly
+                />
 
                 <label>Email:</label>
-                <input type="email" name="emp_mail" value={formData.emp_mail} readOnly required />
+                <input 
+                  type="email" 
+                  name="emp_mail" 
+                  value={formData.emp_mail} 
+                  onChange={handleInputChange}
+                  required 
+                />
+
+                <label>Password (leave empty to keep current):</label>
+                <div className="password-input-container" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                  <input 
+                    type="text"
+                    name="password" 
+                    value={formData.password} 
+                    onChange={handleInputChange}
+                    placeholder="Enter new password or leave empty"
+                    minLength="6"
+                    style={{ flex: 1, paddingRight: '40px' }}
+                  />
+                  <button
+                    type="button"
+                    style={{
+                      position: 'absolute',
+                      right: '10px',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: '16px',
+                      color: '#666',
+                      padding: '0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: '24px',
+                      height: '24px'
+                    }}
+                  >
+                  </button>
+                </div>
 
                 <label>Type:</label>
                 <select name="emp_type_aux" value={formData.emp_type_aux} onChange={handleInputChange} required>
@@ -439,6 +518,7 @@ const EmployeesAd = () => {
                   max={getTodayDate()}
                   required 
                 />
+
                 <label>Contract End Date:</label>
                 <input 
                   type="date" 
@@ -447,6 +527,7 @@ const EmployeesAd = () => {
                   onChange={handleInputChange}
                   min={formData.emp_join_aux || getTodayDate()}
                 />
+
                 <label>Status:</label>
                 <select name="aux_status" value={formData.aux_status} onChange={handleInputChange}>
                   <option value="1">Active</option>
@@ -462,7 +543,7 @@ const EmployeesAd = () => {
           </div>
         )}
 
-        {/* Modal for Adding Employee */}
+        {/* Modal for Adding Employee - WITH PASSWORD FIELD */}
         {showModal2 && (
           <div className="modal-overlay" onClick={() => setShowModal2(false)}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -474,6 +555,17 @@ const EmployeesAd = () => {
 
                 <label>Email:</label>
                 <input type="email" name="emp_mail" value={formData.emp_mail} onChange={handleInputChange} required />
+
+                <label>Password:</label>
+                <input 
+                  type="password" 
+                  name="password" 
+                  value={formData.password} 
+                  onChange={handleInputChange} 
+                  required 
+                  minLength="6"
+                  placeholder="Enter password (min 6 characters)"
+                />
 
                 <label>Type:</label>
                 <select name="emp_type_aux" value={formData.emp_type_aux} onChange={handleInputChange} required>

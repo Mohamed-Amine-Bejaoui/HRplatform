@@ -134,45 +134,6 @@ const db = await connectDB();
     });
   }
 });
-  router.patch('/patemp/:num', async (req, res) => {
-  try {
-    const { num } = req.params;
-    const updates = req.body;
-    
-    if (Object.keys(updates).length === 0) {
-      return res.status(400).json({ error: 'No update fields provided' });
-    }
-
-    // Remove fields that shouldn't be updated (to avoid unique constraint violation)
-    const { emp_num_aux, emp_mail, ...allowedUpdates } = updates;
-    
-    if (Object.keys(allowedUpdates).length === 0) {
-      return res.status(400).json({ error: 'No updatable fields provided' });
-    }
-
-    const setClause = Object.keys(allowedUpdates)
-      .map((field) => `${field} = ?`)
-      .join(', ');
-
-    const values = [...Object.values(allowedUpdates), num];
-
-    const query = `UPDATE users_aux SET ${setClause} WHERE emp_num_aux = ?`;
-    
-    console.log('Update Query:', query); // Debug log
-    console.log('Update Values:', values); // Debug log
-    
-    const [result] = await db.query(query, values);
-    
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: 'Employee not found' });
-    }
-
-    res.status(200).json({ message: 'Employee updated successfully' });
-  } catch (error) {
-    console.error('Update error:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
   router.post('/addemp', async (req, res) => {
   try {
     const { emp_num_aux, emp_mail, password, emp_type_aux, emp_join_aux, contract_finish, aux_status, isAdmin } = req.body;
@@ -193,7 +154,7 @@ const db = await connectDB();
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
     
-    // Insert into users_aux table
+    // Insert into users_aux table first
     const query = `
       INSERT INTO users_aux (emp_num_aux, emp_mail, emp_type_aux, emp_join_aux, contract_finish, aux_status)
       VALUES (?, ?, ?, ?, ?, ?)
@@ -208,6 +169,7 @@ const db = await connectDB();
     
     const insertedId = result.insertId;
 
+    // Insert into login table
     const query2 = `
       INSERT INTO login (emp_mail, password_hash, role, emp_num_aux) 
       VALUES (?, ?, ?, ?)
@@ -218,6 +180,7 @@ const db = await connectDB();
     const [result2] = await db.query(query2, values2);
 
     if (result2.affectedRows === 0) {
+      // Rollback: delete from users_aux if login creation failed
       await db.query('DELETE FROM users_aux WHERE id = ?', [insertedId]);
       throw new Error("Login account creation failed");
     }
@@ -231,7 +194,6 @@ const db = await connectDB();
   } catch (error) {
     console.error("Database Error:", error);
     
-    // Handle specific error types
     if (error.code === 'ER_DUP_ENTRY') {
       res.status(400).json({ 
         error: "Employee ID or email already exists",
@@ -240,6 +202,144 @@ const db = await connectDB();
     } else {
       res.status(500).json({ 
         error: "Failed to add employee",
+        message: error.message 
+      });
+    }
+  }
+});
+  router.patch('/patemp/:num', async (req, res) => {
+  try {
+    const { num } = req.params; // Original employee ID
+    const { password, emp_num_aux, emp_mail, ...otherUpdates } = req.body;
+    
+    if (Object.keys(req.body).length === 0) {
+      return res.status(400).json({ error: 'No update fields provided' });
+    }
+
+    console.log('Updating employee:', num);
+    console.log('Update data:', req.body);
+
+    // Start transaction-like updates
+    let updateCount = 0;
+
+    // 1. Handle password update in login table
+    if (password && password.trim() !== '') {
+      if (password.length < 6) {
+        return res.status(400).json({ error: 'Password must be at least 6 characters long' });
+      }
+      
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+      
+      const [passwordResult] = await db.query(
+        'UPDATE login SET password_hash = ? WHERE emp_num_aux = ?',
+        [hashedPassword, num]
+      );
+      
+      console.log('Password update result:', passwordResult.affectedRows);
+      updateCount += passwordResult.affectedRows;
+    }
+
+    // 2. Handle employee ID change - update both tables
+    if (emp_num_aux && emp_num_aux !== num) {
+      // Check if new ID already exists
+      const [existingCheck] = await db.query(
+        'SELECT emp_num_aux FROM users_aux WHERE emp_num_aux = ?',
+        [emp_num_aux]
+      );
+      
+      if (existingCheck.length > 0) {
+        return res.status(400).json({ 
+          error: 'Employee ID already exists',
+          message: 'Please use a different employee ID'
+        });
+      }
+      
+      // Update users_aux table
+      const [userIdResult] = await db.query(
+        'UPDATE users_aux SET emp_num_aux = ? WHERE emp_num_aux = ?',
+        [emp_num_aux, num]
+      );
+      
+      // Update login table
+      const [loginIdResult] = await db.query(
+        'UPDATE login SET emp_num_aux = ? WHERE emp_num_aux = ?',
+        [emp_num_aux, num]
+      );
+      
+      console.log('ID update results:', userIdResult.affectedRows, loginIdResult.affectedRows);
+      updateCount += userIdResult.affectedRows;
+    }
+
+    // 3. Handle email change - update both tables
+    if (emp_mail && emp_mail.trim() !== '') {
+      // Check if new email already exists
+      const [emailCheck] = await db.query(
+        'SELECT emp_mail FROM users_aux WHERE emp_mail = ? AND emp_num_aux != ?',
+        [emp_mail, emp_num_aux || num]
+      );
+      
+      if (emailCheck.length > 0) {
+        return res.status(400).json({ 
+          error: 'Email already exists',
+          message: 'Please use a different email address'
+        });
+      }
+      
+      // Update users_aux table
+      const [userEmailResult] = await db.query(
+        'UPDATE users_aux SET emp_mail = ? WHERE emp_num_aux = ?',
+        [emp_mail, emp_num_aux || num]
+      );
+      
+      // Update login table
+      const [loginEmailResult] = await db.query(
+        'UPDATE login SET emp_mail = ? WHERE emp_num_aux = ?',
+        [emp_mail, emp_num_aux || num]
+      );
+      
+      console.log('Email update results:', userEmailResult.affectedRows, loginEmailResult.affectedRows);
+      updateCount += userEmailResult.affectedRows;
+    }
+
+    // 4. Update other fields in users_aux table
+    if (Object.keys(otherUpdates).length > 0) {
+      const setClause = Object.keys(otherUpdates)
+        .map((field) => `${field} = ?`)
+        .join(', ');
+
+      const values = [...Object.values(otherUpdates), emp_num_aux || num];
+      const query = `UPDATE users_aux SET ${setClause} WHERE emp_num_aux = ?`;
+      
+      console.log('Other updates query:', query);
+      console.log('Other updates values:', values);
+      
+      const [otherResult] = await db.query(query, values);
+      console.log('Other updates result:', otherResult.affectedRows);
+      updateCount += otherResult.affectedRows;
+    }
+
+    if (updateCount === 0) {
+      return res.status(404).json({ error: 'Employee not found or no changes made' });
+    }
+
+    res.status(200).json({ 
+      message: 'Employee updated successfully',
+      updatedFields: Object.keys(req.body).length,
+      newEmployeeId: emp_num_aux || num
+    });
+
+  } catch (error) {
+    console.error('Update error:', error);
+    
+    if (error.code === 'ER_DUP_ENTRY') {
+      res.status(400).json({ 
+        error: "Employee ID or email already exists",
+        message: "Please use a different employee ID or email address"
+      });
+    } else {
+      res.status(500).json({ 
+        error: "Failed to update employee",
         message: error.message 
       });
     }
