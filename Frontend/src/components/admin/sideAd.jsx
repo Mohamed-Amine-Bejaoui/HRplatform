@@ -6,11 +6,11 @@ const SideAd = () => {
     <div className='sidebar'>
          <nav className='links'>
          <img src="/assets/téléchargement.png" alt="Logo" />
-                        <NavLink to="/admin-dashboard" className="sidebar-link" activeClassName="active">
-                            Calendar
-                        </NavLink>
                         <NavLink to="/statistics" className="sidebar-link" activeClassName="active">
                             Dashboard
+                        </NavLink>
+                        <NavLink to="/admin-dashboard" className="sidebar-link" activeClassName="active">
+                            Calendar
                         </NavLink>
                         
                         <NavLink to="/inputsAd" className="sidebar-link" activeClassName="active">

@@ -83,13 +83,11 @@ const db = await connectDB();
     }
     catch (error)
     {
-      console.log(error);
       res.status(500).json({ error: error.message });
     }
   })
   router.delete('/delemp/:num', async (req, res) => {
   try {
-    console.log('DELETE request for employee:', req.params.num);
     
     // First check if employee exists
     const checkQuery = 'SELECT emp_mail FROM users_aux WHERE emp_num_aux = ?';
@@ -101,20 +99,17 @@ const db = await connectDB();
     }
 
     const email = checkRows[0].emp_mail;
-    console.log('Found employee email:', email);
 
     // Delete from login table first
     if (email) {
       const deleteLoginQuery = 'DELETE FROM login WHERE emp_mail = ?';
       const [loginResult] = await db.query(deleteLoginQuery, [email]);
-      console.log('Login delete result:', loginResult.affectedRows);
     }
 
     // Delete from users_aux table
     const deleteUserQuery = 'DELETE FROM users_aux WHERE emp_num_aux = ?';
     const [deleteResult] = await db.query(deleteUserQuery, [req.params.num]);
     
-    console.log('User delete result:', deleteResult.affectedRows);
 
     if (deleteResult.affectedRows === 0) {
       return res.status(404).json({ error: 'Employee not found or already deleted' });
@@ -148,7 +143,6 @@ const db = await connectDB();
       return res.status(400).json({ error: 'Password must be at least 6 characters long' });
     }
     
-    console.log('Adding employee with status:', aux_status);
     
     // Hash the password
     const saltRounds = 10;
@@ -216,8 +210,6 @@ const db = await connectDB();
       return res.status(400).json({ error: 'No update fields provided' });
     }
 
-    console.log('Updating employee:', num);
-    console.log('Update data:', req.body);
 
     // Start transaction-like updates
     let updateCount = 0;
@@ -236,7 +228,6 @@ const db = await connectDB();
         [hashedPassword, num]
       );
       
-      console.log('Password update result:', passwordResult.affectedRows);
       updateCount += passwordResult.affectedRows;
     }
 
@@ -267,7 +258,6 @@ const db = await connectDB();
         [emp_num_aux, num]
       );
       
-      console.log('ID update results:', userIdResult.affectedRows, loginIdResult.affectedRows);
       updateCount += userIdResult.affectedRows;
     }
 
@@ -298,7 +288,6 @@ const db = await connectDB();
         [emp_mail, emp_num_aux || num]
       );
       
-      console.log('Email update results:', userEmailResult.affectedRows, loginEmailResult.affectedRows);
       updateCount += userEmailResult.affectedRows;
     }
 
@@ -311,11 +300,8 @@ const db = await connectDB();
       const values = [...Object.values(otherUpdates), emp_num_aux || num];
       const query = `UPDATE users_aux SET ${setClause} WHERE emp_num_aux = ?`;
       
-      console.log('Other updates query:', query);
-      console.log('Other updates values:', values);
       
       const [otherResult] = await db.query(query, values);
-      console.log('Other updates result:', otherResult.affectedRows);
       updateCount += otherResult.affectedRows;
     }
 
@@ -365,9 +351,6 @@ const db = await connectDB();
     `;
     
     const [results] = await db.query(query);
-    
-    console.log('Inactive employees found:', results.length); // Debug log
-    console.log('Sample employee:', results[0]); // Debug log
     
     res.json({
       count: results.length,

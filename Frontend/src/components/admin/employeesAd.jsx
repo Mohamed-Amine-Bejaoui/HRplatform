@@ -82,6 +82,7 @@ const EmployeesAd = () => {
           emp.emp_num_aux === employee.emp_num_aux ? { ...emp, ...employee } : emp
         )
       );
+      alert('Employee updated successfully!');
     } catch (error) {
       console.error('Error updating employee:', error);
       alert('Error updating employee');
@@ -121,7 +122,6 @@ const EmployeesAd = () => {
       // Refresh main employees list
       await fetchEmployees();
       
-      alert('Employee approved successfully!');
     } catch (error) {
       console.error('Error approving employee:', error);
       alert(`Error approving employee: ${error.message}`);
@@ -199,6 +199,7 @@ const EmployeesAd = () => {
       }
 
       console.log(`Deleted user with ID: ${id}`);
+      alert(`User with ID ${id} deleted successfully!`);
       setEmployees((prevEmployees) => prevEmployees.filter(emp => emp.emp_num_aux !== id));
     } catch (error) {
       console.error("Error deleting user:", error);
@@ -297,6 +298,7 @@ const EmployeesAd = () => {
         contract_finish: "",
         isAdmin: false,
       });
+      alert("Employee added successfully!");
     } catch (error) {
       console.error("mail et ID doivent étre unique", error);
       alert("mail et ID doivent étre unique");
@@ -331,9 +333,9 @@ const EmployeesAd = () => {
         <h1>Employees</h1>
         <div className="search">
           <button className="addbtn" onClick={() => openAddModal()}>Add</button>
-          <button className="approvebtn" onClick={() => openApproveModal()}>Approve Employees</button>
+          <button className="approvebtn" onClick={() => openApproveModal()}>Approve User</button>
           <form onSubmit={handlerecherche} onReset={fetchEmployees}>
-            <input type="text" placeholder="ID employee" onChange={handleInputChange2} value={rechID} className="input" />
+            <input type="text" placeholder="ID User" onChange={handleInputChange2} value={rechID} className="input" />
             <button type="submit">Search</button>
             <button type="reset">Reset</button>
           </form>
@@ -386,10 +388,10 @@ const EmployeesAd = () => {
 
         {/* Approve Employees Modal */}
         {showApproveModal && (
-          <div className="modal-overlay" onClick={() => setShowApproveModal(false)}>
+          <div className="modal-overlay">
             <div className="approve-modal-content" onClick={(e) => e.stopPropagation()}>
               <button className="close-btn" onClick={() => setShowApproveModal(false)}>X</button>
-              <h2>Approve Employees</h2>
+              <h2>Approve user</h2>
               
               <div className="approve-modal-body">
                 {loadingInactive ? (
@@ -442,10 +444,10 @@ const EmployeesAd = () => {
 
         {/* Modal for Updating Employee - WITH PASSWORD VISIBILITY TOGGLE */}
         {showModal && (
-          <div className="modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="modal-overlay">
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
               <button className="close-btn" onClick={() => setShowModal(false)}>X</button>
-              <h2>Update employee</h2>
+              <h2>Update user</h2>
               <form onSubmit={handleUpdateSubmit}>
                 <label>ID:</label>
                 <input 
@@ -469,7 +471,7 @@ const EmployeesAd = () => {
                 <label>Password (leave empty to keep current):</label>
                 <div className="password-input-container" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                   <input 
-                    type="text"
+                    type="password"
                     name="password" 
                     value={formData.password} 
                     onChange={handleInputChange}
@@ -545,10 +547,10 @@ const EmployeesAd = () => {
 
         {/* Modal for Adding Employee - WITH PASSWORD FIELD */}
         {showModal2 && (
-          <div className="modal-overlay" onClick={() => setShowModal2(false)}>
+          <div className="modal-overlay">
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
               <button className="close-btn" onClick={() => setShowModal2(false)}>X</button>
-              <h2>Add employee</h2>
+              <h2>Add User</h2>
               <form onSubmit={handleAddSubmit}>
                 <label>ID:</label>
                 <input type="text" name="emp_num_aux" value={formData.emp_num_aux} onChange={handleInputChange} required />
@@ -570,12 +572,13 @@ const EmployeesAd = () => {
                 <label>Type:</label>
                 <select name="emp_type_aux" value={formData.emp_type_aux} onChange={handleInputChange} required>
                   <option value="">Select contract type</option>
-                  <option value="CDI">CDI (Contrat à Durée Indéterminée)</option>
-                  <option value="CDD">CDD (Contrat à Durée Déterminée)</option>
-                  <option value="CTT">CTT (Contrat de Travail Temporaire / Intérim)</option>
-                  <option value="Contrat d'apprentissage">Contrat d'apprentissage</option>
-                  <option value="Contrat de professionnalisation">Contrat de professionnalisation</option>
-                  <option value="CIVP">CIVP (Contrat d'Insertion dans la Vie Professionnelle)</option>
+                  <option value="CDI">CDI (Permanent Contract)</option>
+                  <option value="CDD">CDD (Fixed-Term Contract)</option>
+                  <option value="CTT">CTT (Temporary Work / Interim Contract)</option>
+                  <option value="Apprenticeship Contract">Apprenticeship Contract</option>
+                  <option value="Professionalization Contract">Professionalization Contract</option>
+                  <option value="CIVP">CIVP (Professional Integration Contract)</option>
+
                 </select>
 
                 <label>Date of Hire:</label>

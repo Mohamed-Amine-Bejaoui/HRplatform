@@ -33,7 +33,7 @@ const ProfileAd = () => {
     <div className="prf">
       <SideAd />
       <div className="prcontainer">
-        <h1>Admin Profile</h1>
+        <h1>Profile</h1>
         <br></br>
         <div className="profile-card">
         <div className="profile-row"><span className="label">ID:</span><span>{profileData.emp_num_aux}</span></div>
@@ -62,7 +62,6 @@ const ProfileAd = () => {
               {profileData.aux_status === 1 ? "Active" : "Inactive"}
             </span>
           </div>
-          <div className="profile-row"><span className="label">Vacation Days:</span><span>{profileData.emp_vdays_aux?profileData.emp_vdays_aux:0} days</span></div>
         </div>
       </div>
     </div>
