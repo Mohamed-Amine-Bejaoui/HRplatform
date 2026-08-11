@@ -5,7 +5,6 @@ const router = express.Router();
 
 let db;
 
-// Setup the route once the DB is connected
 connectDB().then((connection) => {
   db = connection;
 router.get('/statistics', async (req, res) => {

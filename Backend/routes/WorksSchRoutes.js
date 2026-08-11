@@ -10,18 +10,15 @@ import connectDB from '../db.js';
 const db = await connectDB();
 const router = express.Router();
 
-// Directory setup
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const processedDir = path.resolve(__dirname, '../uploads/processed');
 const uploadDir = path.resolve(__dirname, '../uploads/workschedule');
 
-// Ensure upload directory exists
 [uploadDir, processedDir].forEach(dir => {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 });
 
-// Configure multer storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadDir),
   filename: (req, file, cb) => cb(null, file.originalname)
@@ -29,7 +26,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-// File upload endpoint
+
 router.post('/upload', upload.array('files'), (req, res) => {
   if (!req.files || req.files.length === 0) {
     return res.status(400).json({ message: 'No files uploaded' });
@@ -46,7 +43,6 @@ router.post('/upload', upload.array('files'), (req, res) => {
   });
 });
 
-// Status mapping configuration
 const statusMapping = {
   "OK": "Working day",
   "V": "Vacations",
@@ -62,7 +58,6 @@ const statusMapping = {
   "M": "Marriage",
 };
 
-// Process work schedule files
 const processWorkSchedule = async (targetMonth) => {
   const [targetYear, targetMonthNumber] = targetMonth.split('-');
   const folderPath = path.join(__dirname, '../uploads/workschedule');
@@ -87,7 +82,6 @@ const processWorkSchedule = async (targetMonth) => {
     return { message: `No files match the selected month workschedule: ${targetMonth}`, entriesInserted: 0 };
   }
 
-  // Get the most recently modified file
   const latestFile = matchedFiles
     .map(file => ({
       file,
@@ -125,7 +119,6 @@ const processWorkSchedule = async (targetMonth) => {
       .on('error', reject);
   });
 
-  // Insert results into database
   const sql = `
     INSERT INTO work_schedule (emp_num_aux, work_date, planned_status)
     VALUES (?, ?, ?)
@@ -143,8 +136,6 @@ const processWorkSchedule = async (targetMonth) => {
   }
 
   console.log(`✅ Processed file: ${latestFile} with ${entriesInserted} entries`);
-
-  // ✅ Move file to processed folder if at least one entry was inserted
   if (entriesInserted > 0) {
     const processedPath = path.join(processedDir, latestFile);
     fs.renameSync(filePath, processedPath);
@@ -171,7 +162,6 @@ router.post('/process-cron', async (req, res) => {
       const [year, month, day] = cronDate.split('-');
       const [hour, minute] = cronTime.split(':');
 
-      // Convert to cron expression: "m h D M *"
       const cronExpr = `${parseInt(minute)} ${parseInt(hour)} ${parseInt(day)} ${parseInt(month)} *`;
 
       console.log(`⏳ Scheduling cron job for ${targetMonth} at ${cronExpr}`);
@@ -185,12 +175,10 @@ router.post('/process-cron', async (req, res) => {
           console.error('❌ Scheduled processing failed:', err.message);
         }
 
-        // Stop this one-time job
         job.stop();
       });
 
-      dynamicCronJobs.push(job); // Optional: track it
-
+      dynamicCronJobs.push(job);
       return res.status(200).json({
         message: `Cron job scheduled for ${cronDate} ${cronTime}`,
         cronExpression: cronExpr,

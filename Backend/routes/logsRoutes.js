@@ -17,7 +17,6 @@ const router = express.Router();
 const db = await connectDB();
 const execAsync = util.promisify(exec);
 
-// Setup directories
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const uploadsDir = path.resolve(__dirname, '../uploads/logs');
@@ -27,7 +26,6 @@ const processedDir = path.resolve(__dirname, '../uploads/processed');
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 });
 
-// File upload config
 const upload = multer({
   storage: multer.diskStorage({
     destination: (req, file, cb) => cb(null, uploadsDir),
@@ -35,13 +33,11 @@ const upload = multer({
   })
 });
 
-// Upload endpoint
 router.post('/upload', upload.array('files'), (req, res) => {
   if (!req.files?.length) return res.status(400).json({ message: 'No files uploaded.' });
   res.status(200).json({ message: 'Files uploaded successfully.' });
 });
 
-// Employee presence endpoint
 router.get('/presence/:id', async (req, res) => {
   try {
     const [rows] = await db.query('SELECT * FROM attendance_logs2 WHERE emp_id = ?', [req.params.id]);
@@ -51,8 +47,6 @@ router.get('/presence/:id', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
-// Cron setup endpoint
 router.post('/process-cron', async (req, res) => {
   const { date, time, targetMonth } = req.body;
   if (!date || !time || !targetMonth) {
@@ -81,7 +75,6 @@ router.post('/process-cron', async (req, res) => {
   }
 });
 
-// Process files for a specific month
 async function processFilesForMonth(year, month) {
   try {
     if (!fs.existsSync(uploadsDir)) return;
@@ -110,7 +103,6 @@ async function processFilesForMonth(year, month) {
 
     console.log(`Processing completed: ${processedCount} files processed`);
     
-    // Send emails only once after all files are processed
     if (processedCount > 0 && !emailProcessing) {
       emailProcessing = true;
       console.log('⏳ Waiting 5 seconds for all alerts to be generated...');
@@ -124,7 +116,7 @@ async function processFilesForMonth(year, month) {
           console.error('❌ Error sending emails:', error);
           emailProcessing = false;
         }
-      }, 5000); // Wait 5 seconds for all alerts to be generated
+      }, 5000); 
     }
 
   } catch (error) {
@@ -133,7 +125,6 @@ async function processFilesForMonth(year, month) {
   }
 }
 
-// Process XLS file
 async function processXlsFile(filePath, targetYear, targetMonth) {
   return new Promise((resolve, reject) => {
     try {
@@ -141,7 +132,6 @@ async function processXlsFile(filePath, targetYear, targetMonth) {
       const workbook = xlsx.readFile(filePath);
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
       
-      // Extract date from header
       const frenchDatePattern = /Pointages du \w+\. (\d+) (\w+) (\d+)/;
       const headerCell = worksheet['A1'] || worksheet['B1'];
       
@@ -164,7 +154,6 @@ async function processXlsFile(filePath, targetYear, targetMonth) {
 
       const formattedDate = `${year}-${monthStr}-${day.padStart(2, '0')}`;
       
-      // Convert to JSON
       const jsonData = xlsx.utils.sheet_to_json(worksheet, {
         header: ['matricule', 'nom_prenom', 'empty1', 'empty2', 'empty3', 'empty4', 
                 'horaire_prev', 'empty5','prévue','prem_point', 'dern_point', 'nb_point'],
@@ -172,7 +161,6 @@ async function processXlsFile(filePath, targetYear, targetMonth) {
         defval: null
       });
 
-      // Process each row
       jsonData.forEach((row) => {
         if (!row.matricule || !row.nom_prenom) return;
         if (row.matricule === 'Matricule' || row.matricule === 'Faurecia') return;
@@ -209,7 +197,6 @@ async function processXlsFile(filePath, targetYear, targetMonth) {
   });
 }
 
-// Convert Excel time to readable format
 const convertExcelTime = (excelSerial) => {
   if (excelSerial === null || excelSerial === undefined) return null;
   
@@ -237,7 +224,6 @@ const convertExcelTime = (excelSerial) => {
   }
 };
 
-// Calculate worked hours
 const calculateWorkedHours = (checkIn, checkOut) => {
   if (!checkIn || !checkOut) return null;
 
@@ -256,7 +242,6 @@ const calculateWorkedHours = (checkIn, checkOut) => {
   }
 };
 
-// Check if employee is late
 const isLate = (checkIn) => {
   try {
     const [h, m] = checkIn.split(':').map(Number);
@@ -266,7 +251,6 @@ const isLate = (checkIn) => {
   }
 };
 
-// Email transporter
 const createEmailTransporter = () => {
   return nodemailer.createTransport({
     service: 'gmail',
@@ -277,10 +261,8 @@ const createEmailTransporter = () => {
   });
 };
 
-// Add a flag to track if emails are being sent
 let emailProcessing = false;
 
-// Updated sendAlertEmails function - ONE email per employee with ALL alerts
 async function sendAlertEmails() {
   try {
     console.log(`📧 Looking for employees with alerts...`);
@@ -310,7 +292,6 @@ async function sendAlertEmails() {
       return;
     }
 
-    // Show alert counts for each employee
     console.log('📊 Alert summary by employee:');
     employees.forEach(emp => {
       console.log(`   - Employee ${emp.emp_num_aux}: ${emp.total_alert_count} alerts`);
@@ -325,7 +306,6 @@ async function sendAlertEmails() {
         console.log(`✅ Email sent to ${employee.emp_mail} (${employee.total_alert_count} alerts)`);
         sentEmails++;
         
-        // Small delay between emails
         await new Promise(resolve => setTimeout(resolve, 1000));
         
       } catch (emailError) {
@@ -340,7 +320,6 @@ async function sendAlertEmails() {
   }
 }
 
-// Simple email function
 async function sendSimpleAlertEmail(transporter, employee) {
   const { emp_num_aux, total_alert_count, all_alerts_with_dates, emp_mail } = employee;
 
@@ -431,7 +410,6 @@ export async function saveToDatabase(results) {
   }
 }
 
-// API Routes
 router.post('/send-alert-emails', async (req, res) => {
   try {
     await sendAlertEmails();
@@ -441,42 +419,17 @@ router.post('/send-alert-emails', async (req, res) => {
   }
 });
 
-router.get('/test-email', async (req, res) => {
-  try {
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
-      return res.status(500).json({ error: 'Missing email credentials' });
-    }
-    
-    const transporter = createEmailTransporter();
-    await transporter.verify();
-    
-    const testEmail = {
-      from: process.env.EMAIL_USER,
-      to: process.env.EMAIL_USER,
-      subject: 'HR Platform Email Test',
-      html: '<h2>✅ Email Test Successful!</h2>'
-    };
 
-    await transporter.sendMail(testEmail);
-    res.json({ message: 'Test email sent successfully' });
-    
-  } catch (error) {
-    res.status(500).json({ error: 'Email test failed', details: error.message });
-  }
-});
 
-// Add this debug route to check alerts data
 router.get('/debug-alerts', async (req, res) => {
   try {
     const today = new Date().toISOString().split('T')[0];
     
-    // Check all alerts for today
     const [allAlerts] = await db.query(
       'SELECT * FROM alerts WHERE DATE(detected_on) = ? ORDER BY id DESC LIMIT 10', 
       [today]
     );
     
-    // Check employees with emails
     const [employeesWithEmails] = await db.query(`
       SELECT 
         a.emp_num_aux,
@@ -490,7 +443,6 @@ router.get('/debug-alerts', async (req, res) => {
       ORDER BY a.id DESC LIMIT 10
     `, [today]);
 
-    // Check the exact query from sendAlertEmails
     const [emailQuery] = await db.query(`
       SELECT 
         a.emp_num_aux,
