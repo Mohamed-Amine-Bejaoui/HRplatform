@@ -17,7 +17,7 @@ const Notifs = () => {
     resolved: 'all',
     month: 'all',
     year:'all',
-    employee: empNumAux // Keep this for internal state management
+    employee: empNumAux 
   });
 
   const fetchAlerts = async () => {
@@ -206,9 +206,16 @@ const Notifs = () => {
                       </td>
                       <td>{alert.anomaly}</td>
                       <td>
-                        <span className={`resolution-badge ${alert.resolved ? 'resolved' : 'unresolved'}`}>
-                          {alert.resolved ? 'Resolved' : 'Unresolved'}
-                        </span>
+                        <td>
+                        {!alert.resolved && (
+                          <button 
+                            onClick={() => markAsResolved(alert.id)}
+                            className="resolve-btn"
+                          >
+                            Mark Resolved
+                          </button>
+                        )}
+                      </td>
                       </td>
                     </tr>
                   ))}
